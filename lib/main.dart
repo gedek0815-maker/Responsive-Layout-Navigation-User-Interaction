@@ -1,224 +1,217 @@
 import 'package:flutter/material.dart';
 
-// Identitas Mahasiswa wajib dicantumkan
+// Identitas Mahasiswa
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
 void main() {
-  runApp(const TahapSembilanApp());
+  runApp(const TahapSepuluhApp());
 }
 
-class TahapSembilanApp extends StatelessWidget {
-  const TahapSembilanApp({super.key});
+class TahapSepuluhApp extends StatelessWidget {
+  const TahapSepuluhApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 9: Returning Data Demo',
       debugShowCheckedModeBanner: false,
+      title: 'Tahap 10: Main Navigation',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const CourseHomeWithReturnPage(),
+      home: const MainNavigationPage(),
     );
   }
 }
 
-// 1. Halaman Utama yang menunggu kembalian data (await Navigator.push)
-class CourseHomeWithReturnPage extends StatefulWidget {
-  const CourseHomeWithReturnPage({super.key});
+class MainNavigationPage extends StatefulWidget {
+  const MainNavigationPage({super.key});
 
   @override
-  State<CourseHomeWithReturnPage> createState() =>
-      _CourseHomeWithReturnPageState();
+  State<MainNavigationPage> createState() => _MainNavigationPageState();
 }
 
-class _CourseHomeWithReturnPageState extends State<CourseHomeWithReturnPage> {
-  // Status favorit untuk item pengujian
-  bool _isFavorite = false;
+class _MainNavigationPageState extends State<MainNavigationPage> {
+  int _currentIndex = 0;
 
-  final Map<String, dynamic> sampleCourse = {
-    'code': 'MOB04',
-    'title': 'Responsive Layout & Navigation',
-    'status': 'active',
-    'instructor': 'Dr. Ir. I Ketut Resika Arthana, S.T., M.Kom',
-  };
-
-  // Fungsi navigasi yang meng-await kembalian data
-  Future<void> _navigateToDetail(BuildContext context) async {
-    final bool? result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailConfirmPage(course: sampleCourse),
-      ),
-    );
-
-    // Jika data hasil bernilai true, perbarui state dan tampilkan SnackBar
-    if (result == true && mounted) {
-      setState(() {
-        _isFavorite = true;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Sukses: "${sampleCourse['title']}" telah ditambahkan ke favorit!',
-          ),
-          backgroundColor: Colors.green.shade700,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
+  // Daftar halaman destinasi navigasi
+  final List<Widget> _pages = const [HomeTab(), CoursesTab(), ProfileTab()];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Tahap 9: Returning Data',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '$studentId - $studentName',
-              style: TextStyle(fontSize: 12, color: Colors.white70),
-            ),
-          ],
-        ),
+        title: const Text('Tahap 10: NavigationBar'),
         backgroundColor: const Color(0xFF1976D2),
         foregroundColor: Colors.white,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blue.shade100,
-                          child: const Icon(
-                            Icons.school,
-                            color: Color(0xFF1976D2),
-                          ),
-                        ),
-                        title: Text(
-                          sampleCourse['title'],
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          '${sampleCourse['code']} • ${sampleCourse['instructor']}',
-                        ),
-                        trailing: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: _isFavorite ? Colors.red : Colors.grey,
-                        ),
-                      ),
-                      const Divider(),
-                      Text(
-                        _isFavorite
-                            ? 'Status: Kursus ini SUDAH difavoritkan'
-                            : 'Status: Kursus ini BELUM difavoritkan',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: _isFavorite
-                              ? Colors.green.shade800
-                              : Colors.grey.shade700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text('Buka Detail untuk Memilih Favorit'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                ),
-                onPressed: () => _navigateToDetail(context),
-              ),
-            ],
+      // Menampilkan halaman sesuai indeks aktif
+      body: _pages[_currentIndex],
+      // Material 3 NavigationBar
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (int index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.school_outlined),
+            selectedIcon: Icon(Icons.school),
+            label: 'Courses',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 1. Tab Home
+class HomeTab extends StatelessWidget {
+  const HomeTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.home, size: 72, color: Color(0xFF1976D2)),
+            const SizedBox(height: 16),
+            const Text(
+              'Halaman Utama (Home)',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '$studentId - $studentName',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blueGrey,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Card(
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Selamat datang di Course Explorer! Navigasi utama berada di bar bawah.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// 2. Halaman Detail yang mengembalikan data (Navigator.pop(context, true))
-class DetailConfirmPage extends StatelessWidget {
-  final Map<String, dynamic> course;
-
-  const DetailConfirmPage({super.key, required this.course});
+// 2. Tab Courses
+class CoursesTab extends StatelessWidget {
+  const CoursesTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(course['title']),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
+    final List<String> dummyCourses = [
+      'MOB01 - Git & GitHub',
+      'MOB02 - Dart Fundamentals',
+      'MOB03 - Flutter UI Fundamentals',
+      'MOB04 - Navigation & Routing',
+      'MOB05 - State Management',
+    ];
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: dummyCourses.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        return Card(
+          elevation: 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blue.shade100,
+              child: Text(
+                '${index + 1}',
+                style: const TextStyle(
+                  color: Color(0xFF1976D2),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            title: Text(
+              dummyCourses[index],
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: const Text('Status: Terdaftar'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// 3. Tab Profile
+class ProfileTab extends StatelessWidget {
+  const ProfileTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Identitas: $studentId - $studentName',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.blueGrey,
-              ),
+            const CircleAvatar(
+              radius: 46,
+              backgroundColor: Color(0xFF1976D2),
+              child: Icon(Icons.person, size: 50, color: Colors.white),
             ),
-            const Divider(height: 24),
-            Text(
-              course['title'],
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            const Text(
+              studentName,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
-              'Kode: ${course['code']}',
-              style: const TextStyle(fontSize: 16),
+              'NIM: $studentId | Kelas PTI 5B',
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
             ),
-            Text(
-              'Dosen: ${course['instructor']}',
-              style: const TextStyle(fontSize: 16),
+            const SizedBox(height: 24),
+            const Divider(),
+            const ListTile(
+              leading: Icon(Icons.email_outlined),
+              title: Text('Email Akademik'),
+              subtitle: Text('krisna.adi@undiksha.ac.id'),
             ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.favorite),
-                label: const Text('Pilih / Tandai Favorit (Return true)'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  // Mengembalikan nilai true ke halaman asal lewat pop
-                  Navigator.pop(context, true);
-                },
-              ),
+            const ListTile(
+              leading: Icon(Icons.school_outlined),
+              title: Text('Program Studi'),
+              subtitle: Text('Pendidikan Teknik Informatika'),
             ),
           ],
         ),
