@@ -1,86 +1,135 @@
 import 'package:flutter/material.dart';
 
-// Identitas Mahasiswa
+// Identitas Mahasiswa wajib dicantumkan
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
 void main() {
-  runApp(const TahapSepuluhApp());
+  runApp(const TahapSebelasApp());
 }
 
-class TahapSepuluhApp extends StatelessWidget {
-  const TahapSepuluhApp({super.key});
+class TahapSebelasApp extends StatelessWidget {
+  const TahapSebelasApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 10: Main Navigation',
+      title: 'Tahap 11: Adaptive Navigation',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const MainNavigationPage(),
+      home: const AdaptiveShell(),
     );
   }
 }
 
-class MainNavigationPage extends StatefulWidget {
-  const MainNavigationPage({super.key});
+class AdaptiveShell extends StatefulWidget {
+  const AdaptiveShell({super.key});
 
   @override
-  State<MainNavigationPage> createState() => _MainNavigationPageState();
+  State<AdaptiveShell> createState() => _AdaptiveShellState();
 }
 
-class _MainNavigationPageState extends State<MainNavigationPage> {
-  int _currentIndex = 0;
+class _AdaptiveShellState extends State<AdaptiveShell> {
+  int _selectedIndex = 0;
 
-  // Daftar halaman destinasi navigasi
-  final List<Widget> _pages = const [HomeTab(), CoursesTab(), ProfileTab()];
+  final List<Widget> _pages = const [
+    HomeContent(),
+    CoursesContent(),
+    ProfileContent(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tahap 10: NavigationBar'),
-        backgroundColor: const Color(0xFF1976D2),
-        foregroundColor: Colors.white,
-      ),
-      // Menampilkan halaman sesuai indeks aktif
-      body: _pages[_currentIndex],
-      // Material 3 NavigationBar
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (int index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Breakpoint: Lebar >= 840 px menggunakan NavigationRail (Expanded)
+        final bool isExpanded = constraints.maxWidth >= 840;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              isExpanded
+                  ? 'Tahap 11: Adaptive Navigation (Expanded - Rail)'
+                  : 'Tahap 11: Adaptive Navigation (Compact - Bar)',
+            ),
+            backgroundColor: const Color(0xFF1976D2),
+            foregroundColor: Colors.white,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'Courses',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+          body: isExpanded
+              ? Row(
+                  children: [
+                    // Navigasi samping untuk layar lebar
+                    NavigationRail(
+                      selectedIndex: _selectedIndex,
+                      onDestinationSelected: (int index) {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                      labelType: NavigationRailLabelType.all,
+                      destinations: const [
+                        NavigationRailDestination(
+                          icon: Icon(Icons.home_outlined),
+                          selectedIcon: Icon(Icons.home),
+                          label: Text('Home'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.school_outlined),
+                          selectedIcon: Icon(Icons.school),
+                          label: Text('Courses'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon: Icon(Icons.person),
+                          label: Text('Profile'),
+                        ),
+                      ],
+                    ),
+                    const VerticalDivider(thickness: 1, width: 1),
+                    Expanded(child: _pages[_selectedIndex]),
+                  ],
+                )
+              : _pages[_selectedIndex],
+          // Navigasi bawah untuk layar smartphone / compact
+          bottomNavigationBar: isExpanded
+              ? null
+              : NavigationBar(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (int index) {
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.school_outlined),
+                      selectedIcon: Icon(Icons.school),
+                      label: 'Courses',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: 'Profile',
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 }
 
-// 1. Tab Home
-class HomeTab extends StatelessWidget {
-  const HomeTab({super.key});
+// 1. Tampilan Halaman Home
+class HomeContent extends StatelessWidget {
+  const HomeContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -90,10 +139,14 @@ class HomeTab extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.home, size: 72, color: Color(0xFF1976D2)),
+            const Icon(
+              Icons.dashboard_customize,
+              size: 70,
+              color: Color(0xFF1976D2),
+            ),
             const SizedBox(height: 16),
             const Text(
-              'Halaman Utama (Home)',
+              'Beranda Course Explorer',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -105,7 +158,7 @@ class HomeTab extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Card(
               elevation: 1,
               shape: RoundedRectangleBorder(
@@ -114,7 +167,7 @@ class HomeTab extends StatelessWidget {
               child: const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text(
-                  'Selamat datang di Course Explorer! Navigasi utama berada di bar bawah.',
+                  'Ubah orientasi ke Landscape atau perlebar window untuk melihat perubahan NavigationBar menjadi NavigationRail secara adaptif.',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -126,25 +179,26 @@ class HomeTab extends StatelessWidget {
   }
 }
 
-// 2. Tab Courses
-class CoursesTab extends StatelessWidget {
-  const CoursesTab({super.key});
+// 2. Tampilan Halaman Courses
+class CoursesContent extends StatelessWidget {
+  const CoursesContent({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> dummyCourses = [
-      'MOB01 - Git & GitHub',
-      'MOB02 - Dart Fundamentals',
-      'MOB03 - Flutter UI Fundamentals',
-      'MOB04 - Navigation & Routing',
-      'MOB05 - State Management',
+    final List<Map<String, String>> courses = [
+      {'code': 'MOB01', 'title': 'Git & GitHub', 'status': 'Done'},
+      {'code': 'MOB02', 'title': 'Dart Fundamentals', 'status': 'Done'},
+      {'code': 'MOB03', 'title': 'Flutter UI Fundamentals', 'status': 'Active'},
+      {'code': 'MOB04', 'title': 'Navigation & Routing', 'status': 'Active'},
+      {'code': 'MOB05', 'title': 'State Management', 'status': 'Planned'},
     ];
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: dummyCourses.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      padding: const EdgeInsets.all(20),
+      itemCount: courses.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
+        final item = courses[index];
         return Card(
           elevation: 1,
           shape: RoundedRectangleBorder(
@@ -154,18 +208,18 @@ class CoursesTab extends StatelessWidget {
             leading: CircleAvatar(
               backgroundColor: Colors.blue.shade100,
               child: Text(
-                '${index + 1}',
+                item['code']!.substring(3),
                 style: const TextStyle(
-                  color: Color(0xFF1976D2),
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF1976D2),
                 ),
               ),
             ),
             title: Text(
-              dummyCourses[index],
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              item['title']!,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: const Text('Status: Terdaftar'),
+            subtitle: Text('Status: ${item['status']}'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           ),
         );
@@ -174,9 +228,9 @@ class CoursesTab extends StatelessWidget {
   }
 }
 
-// 3. Tab Profile
-class ProfileTab extends StatelessWidget {
-  const ProfileTab({super.key});
+// 3. Tampilan Halaman Profile
+class ProfileContent extends StatelessWidget {
+  const ProfileContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -201,17 +255,10 @@ class ProfileTab extends StatelessWidget {
               'NIM: $studentId | Kelas PTI 5B',
               style: TextStyle(fontSize: 15, color: Colors.grey.shade700),
             ),
-            const SizedBox(height: 24),
-            const Divider(),
-            const ListTile(
-              leading: Icon(Icons.email_outlined),
-              title: Text('Email Akademik'),
-              subtitle: Text('krisna.adi@undiksha.ac.id'),
-            ),
-            const ListTile(
-              leading: Icon(Icons.school_outlined),
-              title: Text('Program Studi'),
-              subtitle: Text('Pendidikan Teknik Informatika'),
+            const SizedBox(height: 16),
+            const Chip(
+              label: Text('Adaptive Navigation Shell'),
+              backgroundColor: Colors.lightBlueAccent,
             ),
           ],
         ),
