@@ -3,89 +3,70 @@ import 'package:flutter/material.dart';
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
-void main() => runApp(const TahapTigabelasApp());
+void main() => runApp(const TahapEmpatbelasApp());
 
-class TahapTigabelasApp extends StatelessWidget {
-  const TahapTigabelasApp({super.key});
+class TahapEmpatbelasApp extends StatelessWidget {
+  const TahapEmpatbelasApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Tahap13Page(),
+      home: Tahap14Page(),
     );
   }
 }
 
-class Tahap13Page extends StatefulWidget {
-  const Tahap13Page({super.key});
+class Tahap14Page extends StatelessWidget {
+  const Tahap14Page({super.key});
 
-  @override
-  State<Tahap13Page> createState() => _Tahap13PageState();
-}
-
-class _Tahap13PageState extends State<Tahap13Page> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: studentName);
-  final _nimController = TextEditingController(text: studentId);
-  final _commentController = TextEditingController();
+  void _showMyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Aksi'),
+        content: Text('Simpan perubahan data untuk $studentName ($studentId)?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Data berhasil disimpan!')),
+              );
+            },
+            child: const Text('Ya, Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 13: Form & Validation'),
+        title: const Text('Tahap 14: Feedback & Dialog'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _nimController,
-                decoration: const InputDecoration(labelText: 'NIM'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'NIM wajib diisi' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nama Lengkap'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Nama wajib diisi' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(
-                  labelText: 'Komentar / Feedback',
-                ),
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().length < 5) {
-                    return 'Komentar minimal harus 5 karakter';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Form valid dan berhasil diproses!'),
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Kirim Feedback'),
-              ),
-            ],
-          ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              '$studentId - $studentName',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _showMyDialog(context),
+              child: const Text('Tampilkan Dialog Konfirmasi'),
+            ),
+          ],
         ),
       ),
     );
