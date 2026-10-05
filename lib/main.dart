@@ -1,153 +1,162 @@
 import 'package:flutter/material.dart';
 
+// Identitas Mahasiswa wajib dicantumkan
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
 void main() {
-  runApp(const TahapEnamApp());
+  runApp(const TahapTujuhApp());
 }
 
-class TahapEnamApp extends StatelessWidget {
-  const TahapEnamApp({super.key});
+class TahapTujuhApp extends StatelessWidget {
+  const TahapTujuhApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tahap 6: Scrollable Content',
+      title: 'Tahap 7: Navigation Dasar',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1976D2)),
         useMaterial3: true,
       ),
-      home: const ScrollableFormPage(),
+      home: const HomePage(),
     );
   }
 }
 
-class ScrollableFormPage extends StatelessWidget {
-  const ScrollableFormPage({super.key});
+// 1. Halaman Utama (HomePage)
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Tahap 6: Scrollable & Keyboard',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '$studentId - $studentName',
-              style: TextStyle(fontSize: 12, color: Colors.white70),
-            ),
-          ],
-        ),
+        title: const Text('Tahap 7: Navigation Stack'),
         backgroundColor: const Color(0xFF1976D2),
         foregroundColor: Colors.white,
       ),
-      // SingleChildScrollView mencegah terjadinya overflow saat keyboard virtual muncul
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Profil
-            Center(
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.blue.shade100,
-                    child: const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Color(0xFF1976D2),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    studentName,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'NIM: $studentId | Kelas PTI 5B',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-                  ),
-                ],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.home, size: 72, color: Color(0xFF1976D2)),
+              const SizedBox(height: 16),
+              const Text(
+                'Halaman Utama (HomePage)',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            ),
-            const Divider(height: 32),
-
-            const Text(
-              'Formulir Uji Keyboard Overflow',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-
-            // Daftar Input Fields yang panjang ke bawah
-            _buildInputField('Nama Lengkap', initialValue: studentName),
-            _buildInputField('Nomor Induk Mahasiswa', initialValue: studentId),
-            _buildInputField(
-              'Mata Kuliah',
-              initialValue: 'Pemrograman Aplikasi Bergerak',
-            ),
-            _buildInputField(
-              'Dosen Pengampu',
-              initialValue: 'Dr. Ir. I Ketut Resika Arthana, S.T., M.Kom',
-            ),
-            _buildInputField(
-              'Topik Praktikum',
-              initialValue: 'Pertemuan 5: Responsive, Navigation, Interaction',
-            ),
-            _buildInputField(
-              'Catatan Refleksi',
-              hint: 'Ketik catatan di sini untuk menguji keyboard...',
-              maxLines: 3,
-            ),
-
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.save),
-                label: const Text('Simpan Data Profil'),
+              const SizedBox(height: 8),
+              const Text(
+                '$studentId - $studentName',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blueGrey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Card(
+                elevation: 1,
+                child: Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: Text(
+                    'Status Stack: [ HomePage ]\nTekan tombol di bawah untuk menambah DetailPage ke tumpukan (push).',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Tombol Navigator.push()
+              ElevatedButton.icon(
+                icon: const Icon(Icons.arrow_forward),
+                label: const Text('Buka Halaman Detail'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
                 onPressed: () {
-                  FocusScope.of(context).unfocus(); // Menutup keyboard
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Formulir berhasil diproses!'),
-                    ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DetailPage()),
                   );
                 },
               ),
-            ),
-            const SizedBox(height: 24),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildInputField(
-    String label, {
-    String? initialValue,
-    String? hint,
-    int maxLines = 1,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14.0),
-      child: TextFormField(
-        initialValue: initialValue,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          filled: true,
-          fillColor: Colors.grey.shade50,
+// 2. Halaman Detail (DetailPage)
+class DetailPage extends StatelessWidget {
+  const DetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Halaman Detail'),
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        // Tombol back panah kiri bawaan otomatis tersedia di sini
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.article, size: 72, color: Colors.indigo),
+              const SizedBox(height: 16),
+              const Text(
+                'Halaman Detail (DetailPage)',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '$studentId - $studentName',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blueGrey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Card(
+                elevation: 1,
+                child: Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: Text(
+                    'Status Stack: [ HomePage, DetailPage ]\nTekan tombol kembali di bawah atau tombol back pada AppBar untuk pop.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Tombol Navigator.pop()
+              OutlinedButton.icon(
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Kembali ke Home (Navigator.pop)'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
