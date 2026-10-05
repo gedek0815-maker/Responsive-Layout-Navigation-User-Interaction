@@ -3,104 +3,89 @@ import 'package:flutter/material.dart';
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
-void main() => runApp(const TahapDuabelasApp());
+void main() => runApp(const TahapTigabelasApp());
 
-class TahapDuabelasApp extends StatelessWidget {
-  const TahapDuabelasApp({super.key});
+class TahapTigabelasApp extends StatelessWidget {
+  const TahapTigabelasApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Tahap12Page(),
+      home: Tahap13Page(),
     );
   }
 }
 
-class Tahap12Page extends StatefulWidget {
-  const Tahap12Page({super.key});
+class Tahap13Page extends StatefulWidget {
+  const Tahap13Page({super.key});
 
   @override
-  State<Tahap12Page> createState() => _Tahap12PageState();
+  State<Tahap13Page> createState() => _Tahap13PageState();
 }
 
-class _Tahap12PageState extends State<Tahap12Page> {
-  bool isFavorite = false;
+class _Tahap13PageState extends State<Tahap13Page> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController(text: studentName);
+  final _nimController = TextEditingController(text: studentId);
+  final _commentController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 12: Interaction & InkWell'),
+        title: const Text('Tahap 13: Form & Validation'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '$studentId - $studentName',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 3,
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    isFavorite = !isFavorite;
-                  });
-                },
-                onLongPress: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Long Press terdeteksi pada Card!'),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Flutter UI Fundamentals',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text('MOB03 • 3 SKS'),
-                        ],
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            isFavorite = !isFavorite;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _nimController,
+                decoration: const InputDecoration(labelText: 'NIM'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'NIM wajib diisi' : null,
               ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Tips: Ketuk card untuk mengubah status favorit (dengan efek ripple InkWell), atau tekan lama (long-press) untuk memunculkan SnackBar.',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Nama wajib diisi' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _commentController,
+                decoration: const InputDecoration(
+                  labelText: 'Komentar / Feedback',
+                ),
+                maxLines: 3,
+                validator: (value) {
+                  if (value == null || value.trim().length < 5) {
+                    return 'Komentar minimal harus 5 karakter';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Form valid dan berhasil diproses!'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Kirim Feedback'),
+              ),
+            ],
+          ),
         ),
       ),
     );
