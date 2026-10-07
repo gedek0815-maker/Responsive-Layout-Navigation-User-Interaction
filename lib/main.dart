@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+// ============================================================================
+// IDENTITAS MAHASISWA (SESUAI EMULATOR)
+// ============================================================================
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
@@ -13,7 +16,7 @@ class CourseExplorerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Course Explorer',
+      title: 'Course Explorer - Tahap 2',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -27,6 +30,9 @@ class CourseExplorerApp extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// PARENT WIDGET: Pemilik State (State Ownership)
+// ============================================================================
 class MainResponsiveNavigation extends StatefulWidget {
   const MainResponsiveNavigation({super.key});
 
@@ -38,7 +44,9 @@ class MainResponsiveNavigation extends StatefulWidget {
 class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
   int _selectedIndex = 0;
 
-  // Data representasi daftar mata kuliah
+  // [STATE OWNERSHIP DI PARENT]
+  final Set<String> _favoriteCourseCodes = {'CS101'};
+
   final List<Map<String, dynamic>> _courses = [
     {
       'code': 'CS101',
@@ -52,7 +60,7 @@ class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
       'title': 'Dart Fundamentals',
       'credits': 3,
       'status': 'done',
-      'desc': 'Konsep object-oriented programming (OOP), asynchronous Dart (Future, async/await), collection, dan functional styling.',
+      'desc': 'Konsep object-oriented programming (OOP), asynchronous Dart, collection, dan functional styling.',
     },
     {
       'code': 'CS103',
@@ -77,6 +85,26 @@ class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
     },
   ];
 
+  // Callback action yang memicu setState di parent
+  void _toggleFavorite(String courseCode) {
+    setState(() {
+      if (_favoriteCourseCodes.contains(courseCode)) {
+        _favoriteCourseCodes.remove(courseCode);
+      } else {
+        _favoriteCourseCodes.add(courseCode);
+      }
+    });
+  }
+
+  // Aksi increment callback untuk simulasi prop drilling
+  void _incrementDummyCallback() {
+    setState(() {
+      final unusedCode =
+          'CUSTOM_${DateTime.now().millisecondsSinceEpoch % 1000}';
+      _favoriteCourseCodes.add(unusedCode);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -84,17 +112,29 @@ class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
         final bool isDesktopOrTablet = constraints.maxWidth >= 640;
 
         final List<Widget> pages = [
-          DashboardHomePage(courses: _courses),
-          CoursesListPage(courses: _courses),
-          FavoritesPlaceholderPage(),
+          DashboardHomePage(
+            courses: _courses,
+            favoriteCourseCodes: _favoriteCourseCodes,
+            onToggleFavorite: _toggleFavorite,
+            onCallbackIncrement: _incrementDummyCallback,
+          ),
+          CoursesListPage(
+            courses: _courses,
+            favoriteCourseCodes: _favoriteCourseCodes,
+            onToggleFavorite: _toggleFavorite,
+          ),
+          FavoritesPage(
+            courses: _courses,
+            favoriteCourseCodes: _favoriteCourseCodes,
+            onToggleFavorite: _toggleFavorite,
+          ),
         ];
 
         if (isDesktopOrTablet) {
-          // Layout Layar Lebar: NavigationRail di sebelah kiri
           return Scaffold(
             appBar: AppBar(
               title: const Text(
-                'Course Explorer (Tahap 1)',
+                'Course Explorer (Prop Drilling)',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               elevation: 1,
@@ -104,9 +144,7 @@ class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
                 NavigationRail(
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: (index) {
-                    setState(() {
-                      _selectedIndex = index;
-                    });
+                    setState(() => _selectedIndex = index);
                   },
                   labelType: NavigationRailLabelType.all,
                   leading: const Padding(
@@ -137,11 +175,10 @@ class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
             ),
           );
         } else {
-          // Layout Mobile / Layar Sempit: NavigationBar di bawah
           return Scaffold(
             appBar: AppBar(
               title: const Text(
-                'Course Explorer (Tahap 1)',
+                'Course Explorer (Prop Drilling)',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               elevation: 1,
@@ -150,9 +187,7 @@ class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
             bottomNavigationBar: NavigationBar(
               selectedIndex: _selectedIndex,
               onDestinationSelected: (index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
+                setState(() => _selectedIndex = index);
               },
               destinations: const [
                 NavigationDestination(
@@ -180,28 +215,35 @@ class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
 }
 
 // ============================================================================
-// 1. DASHBOARD HOME PAGE (DENGAN IDENTITAS & STATS CARD)
+// DASHBOARD VIEW
 // ============================================================================
 class DashboardHomePage extends StatelessWidget {
   final List<Map<String, dynamic>> courses;
+  final Set<String> favoriteCourseCodes;
+  final Function(String) onToggleFavorite;
+  final VoidCallback onCallbackIncrement;
 
-  const DashboardHomePage({super.key, required this.courses});
+  const DashboardHomePage({
+    super.key,
+    required this.courses,
+    required this.favoriteCourseCodes,
+    required this.onToggleFavorite,
+    required this.onCallbackIncrement,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final int doneCount = courses.where((c) => c['status'] == 'done').length;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Banner Identitas Mahasiswa (Wajib)
+          // Banner Profil Identitas Mahasiswa
           Card(
             elevation: 2,
-            color: Theme.of(context).colorScheme.primaryContainer,
+            color: const Color(0xFFE8F0FE),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -209,9 +251,7 @@ class DashboardHomePage extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 26,
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .onPrimaryContainer,
+                    backgroundColor: const Color(0xFF1E3A5F),
                     child: const Icon(
                       Icons.person,
                       color: Colors.white,
@@ -224,18 +264,16 @@ class DashboardHomePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$studentId • $studentName',
-                          style: TextStyle(
-                            fontSize: 16,
+                          '$studentId - $studentName',
+                          style: const TextStyle(
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimaryContainer,
+                            color: Color(0xFF1E3A5F),
                           ),
                         ),
                         const SizedBox(height: 2),
                         const Text(
-                          'Worksheet 6 - Local State vs Shared State',
+                          'Tahap 2: Eksperimen Prop Drilling setState()',
                           style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
@@ -247,26 +285,24 @@ class DashboardHomePage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Stat Ringkasan (Cards Responsif)
+          // Ringkasan Metrics
           Row(
             children: [
               Expanded(
                 child: _buildSummaryCard(
-                  context,
                   title: 'Total Courses',
                   value: courses.length.toString(),
-                  icon: Icons.library_books,
+                  icon: Icons.note_outlined,
                   color: Colors.blue,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildSummaryCard(
-                  context,
-                  title: 'Completed',
-                  value: doneCount.toString(),
-                  icon: Icons.check_circle_outline,
-                  color: Colors.green,
+                  title: 'Favorites',
+                  value: favoriteCourseCodes.length.toString(),
+                  icon: Icons.favorite,
+                  color: Colors.red,
                 ),
               ),
             ],
@@ -274,33 +310,174 @@ class DashboardHomePage extends StatelessWidget {
           const SizedBox(height: 20),
 
           const Text(
-            'Active Modules (Tahap 1 Demo):',
+            'Highlight Courses:',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
 
-          // List item course card dengan Local State
-          ...courses.take(3).map((c) => ResponsiveCourseCard(courseData: c)),
+          // Daftar 3 Kursus Teratas
+          ...courses
+              .take(3)
+              .map(
+                (c) => CourseCard(
+                  courseData: c,
+                  isFavorite: favoriteCourseCodes.contains(c['code']),
+                  onToggleFavorite: () => onToggleFavorite(c['code']),
+                ),
+              ),
+
+          const SizedBox(height: 8),
+
+          // ==================================================================
+          // CARD TAHAP 2: MASALAH SETSTATE & PROP DRILLING (SESUAI GAMBAR ANDA)
+          // ==================================================================
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFFCC99), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.orange.withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Tahap 2: Masalah setState & Prop Drilling',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFC85A17),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$studentId • $studentName',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.black45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Badge status Parent
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3CD),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Parent: ${favoriteCourseCodes.length} Fav',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF856404),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Card Child yang menerima via Constructor
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8F0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Child (Menerima via Constructor):',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Diterima: ${favoriteCourseCodes.length}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Tombol Callback menuju Parent
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE65100),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                        ),
+                        onPressed: onCallbackIncrement,
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text(
+                          'Callback',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(
-    BuildContext context, {
+  Widget _buildSummaryCard({
     required String title,
     required String value,
     required IconData icon,
     required Color color,
   }) {
     return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0.5,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
         child: Row(
           children: [
-            Icon(icon, size: 30, color: color),
+            Icon(icon, size: 28, color: color),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,12 +503,19 @@ class DashboardHomePage extends StatelessWidget {
 }
 
 // ============================================================================
-// 2. COURSES LIST PAGE
+// COURSES LIST VIEW
 // ============================================================================
 class CoursesListPage extends StatelessWidget {
   final List<Map<String, dynamic>> courses;
+  final Set<String> favoriteCourseCodes;
+  final Function(String) onToggleFavorite;
 
-  const CoursesListPage({super.key, required this.courses});
+  const CoursesListPage({
+    super.key,
+    required this.courses,
+    required this.favoriteCourseCodes,
+    required this.onToggleFavorite,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -339,29 +523,83 @@ class CoursesListPage extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       itemCount: courses.length,
       itemBuilder: (context, index) {
-        return ResponsiveCourseCard(courseData: courses[index]);
+        final course = courses[index];
+        return CourseCard(
+          courseData: course,
+          isFavorite: favoriteCourseCodes.contains(course['code']),
+          onToggleFavorite: () => onToggleFavorite(course['code']),
+        );
       },
     );
   }
 }
 
 // ============================================================================
-// 3. WIDGET DENGAN LOCAL STATE (FOKUS TAHAP 1)
-// Menggunakan setState() untuk mengelola interaksi buka-tutup dan toggle lokal
+// FAVORITES VIEW
 // ============================================================================
-class ResponsiveCourseCard extends StatefulWidget {
-  final Map<String, dynamic> courseData;
+class FavoritesPage extends StatelessWidget {
+  final List<Map<String, dynamic>> courses;
+  final Set<String> favoriteCourseCodes;
+  final Function(String) onToggleFavorite;
 
-  const ResponsiveCourseCard({super.key, required this.courseData});
+  const FavoritesPage({
+    super.key,
+    required this.courses,
+    required this.favoriteCourseCodes,
+    required this.onToggleFavorite,
+  });
 
   @override
-  State<ResponsiveCourseCard> createState() => _ResponsiveCourseCardState();
+  Widget build(BuildContext context) {
+    final favList = courses
+        .where((c) => favoriteCourseCodes.contains(c['code']))
+        .toList();
+
+    if (favList.isEmpty) {
+      return const Center(
+        child: Text(
+          'Belum ada mata kuliah favorit.',
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: favList.length,
+      itemBuilder: (context, index) {
+        final course = favList[index];
+        return CourseCard(
+          courseData: course,
+          isFavorite: true,
+          onToggleFavorite: () => onToggleFavorite(course['code']),
+        );
+      },
+    );
+  }
 }
 
-class _ResponsiveCourseCardState extends State<ResponsiveCourseCard> {
-  // [LOCAL STATE]: Status expand dan toggle lokal item ini
+// ============================================================================
+// LEAF WIDGET: CourseCard
+// ============================================================================
+class CourseCard extends StatefulWidget {
+  final Map<String, dynamic> courseData;
+  final bool isFavorite;
+  final VoidCallback onToggleFavorite;
+
+  const CourseCard({
+    super.key,
+    required this.courseData,
+    required this.isFavorite,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  State<CourseCard> createState() => _CourseCardState();
+}
+
+class _CourseCardState extends State<CourseCard> {
   bool _isExpanded = false;
-  bool _isLocalFavorite = false;
 
   @override
   Widget build(BuildContext context) {
@@ -372,8 +610,10 @@ class _ResponsiveCourseCardState extends State<ResponsiveCourseCard> {
     if (status == 'active') badgeColor = Colors.blue;
 
     return Card(
+      elevation: 0.5,
+      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(14.0),
         child: Column(
@@ -388,7 +628,7 @@ class _ResponsiveCourseCardState extends State<ResponsiveCourseCard> {
                       Text(
                         widget.courseData['title'] as String,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -401,13 +641,13 @@ class _ResponsiveCourseCardState extends State<ResponsiveCourseCard> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: badgeColor.withOpacity(0.15),
+                              color: badgeColor.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               status.toUpperCase(),
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: badgeColor,
                               ),
@@ -426,20 +666,14 @@ class _ResponsiveCourseCardState extends State<ResponsiveCourseCard> {
                     ],
                   ),
                 ),
-                // Local State Action 1: Toggle Bookmark Lokal
                 IconButton(
-                  tooltip: 'Toggle Local Favorite',
+                  tooltip: 'Toggle Favorite',
                   icon: Icon(
-                    _isLocalFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: _isLocalFavorite ? Colors.red : Colors.grey,
+                    widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: widget.isFavorite ? Colors.red : Colors.grey,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _isLocalFavorite = !_isLocalFavorite;
-                    });
-                  },
+                  onPressed: widget.onToggleFavorite,
                 ),
-                // Local State Action 2: Toggle Expand/Collapse Detail
                 IconButton(
                   tooltip: 'Detail Info',
                   icon: Icon(
@@ -453,56 +687,13 @@ class _ResponsiveCourseCardState extends State<ResponsiveCourseCard> {
                 ),
               ],
             ),
-            // Rebuild terjadi hanya pada widget lokal ini saat di-expand
             if (_isExpanded) ...[
               const Divider(height: 18),
               Text(
                 widget.courseData['desc'] as String,
                 style: const TextStyle(fontSize: 13, color: Colors.black87),
               ),
-              const SizedBox(height: 4),
-              const Text(
-                '* Catatan Tahap 1: State kartu ini (expand & icon favorite) dikelola secara lokal menggunakan setState().',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.black45,
-                ),
-              ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// 4. FAVORITES PLACEHOLDER PAGE
-// ============================================================================
-class FavoritesPlaceholderPage extends StatelessWidget {
-  const FavoritesPlaceholderPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.favorite_outline, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'Favorites Screen',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Pada Tahap 1, daftar favorit masih berupa Local State pada tiap kartu di tab Courses sehingga belum tersinkronisasi di tab ini.\n(Akan disatukan dengan Shared State Provider pada Tahap berikutnya).',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54),
-            ),
           ],
         ),
       ),
