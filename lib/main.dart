@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
-void main() => runApp(const CourseExplorerApp());
+void main() {
+  runApp(const CourseExplorerApp());
+}
 
 class CourseExplorerApp extends StatelessWidget {
   const CourseExplorerApp({super.key});
@@ -14,58 +16,64 @@ class CourseExplorerApp extends StatelessWidget {
       title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1976D2),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
       ),
-      home: const MainShellPage(),
+      home: const MainResponsiveNavigation(),
     );
   }
 }
 
-class MainShellPage extends StatefulWidget {
-  const MainShellPage({super.key});
+class MainResponsiveNavigation extends StatefulWidget {
+  const MainResponsiveNavigation({super.key});
 
   @override
-  State<MainShellPage> createState() => _MainShellPageState();
+  State<MainResponsiveNavigation> createState() =>
+      _MainResponsiveNavigationState();
 }
 
-class _MainShellPageState extends State<MainShellPage> {
+class _MainResponsiveNavigationState extends State<MainResponsiveNavigation> {
   int _selectedIndex = 0;
 
-  final List<Map<String, dynamic>> courses = [
+  // Data representasi daftar mata kuliah
+  final List<Map<String, dynamic>> _courses = [
     {
-      "code": "MOB01",
-      "title": "Git & GitHub",
-      "credits": 2,
-      "status": "done",
-      "instructor": "Dr. Ir. I Ketut Resika Arthana, S.T., M.Kom",
+      'code': 'CS101',
+      'title': 'Git & GitHub',
+      'credits': 2,
+      'status': 'done',
+      'desc': 'Menguasai version control system, branching workflow, commit atomic, serta kolaborasi via GitHub repository.',
     },
     {
-      "code": "MOB02",
-      "title": "Dart Fundamentals",
-      "credits": 2,
-      "status": "done",
-      "instructor": "Dr. Ir. I Ketut Resika Arthana, S.T., M.Kom",
+      'code': 'CS102',
+      'title': 'Dart Fundamentals',
+      'credits': 3,
+      'status': 'done',
+      'desc': 'Konsep object-oriented programming (OOP), asynchronous Dart (Future, async/await), collection, dan functional styling.',
     },
     {
-      "code": "MOB03",
-      "title": "Flutter UI Fundamentals",
-      "credits": 3,
-      "status": "active",
-      "instructor": "Dr. Ir. I Ketut Resika Arthana, S.T., M.Kom",
+      'code': 'CS103',
+      'title': 'State Management',
+      'credits': 3,
+      'status': 'active',
+      'desc': 'Memahami local vs shared state, limitasi setState, Provider architecture, dan separation of concerns.',
     },
     {
-      "code": "MOB04",
-      "title": "Navigation & Routing",
-      "credits": 2,
-      "status": "planned",
-      "instructor": "Dr. Ir. I Ketut Resika Arthana, S.T., M.Kom",
+      'code': 'CS104',
+      'title': 'Responsive & Adaptive UI',
+      'credits': 3,
+      'status': 'done',
+      'desc': 'Pemanfaatan LayoutBuilder, MediaQuery, NavigationRail, dan master-detail adaptif berbagai ukuran layar.',
     },
     {
-      "code": "MOB05",
-      "title": "State Management",
-      "credits": 3,
-      "status": "planned",
-      "instructor": "Dr. Ir. I Ketut Resika Arthana, S.T., M.Kom",
+      'code': 'CS105',
+      'title': 'Networking & API Integration',
+      'credits': 4,
+      'status': 'upcoming',
+      'desc': 'Pengambilan data remote melalui HTTP REST API, serialization JSON, error handling, dan caching lokal.',
     },
   ];
 
@@ -73,59 +81,94 @@ class _MainShellPageState extends State<MainShellPage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isExpanded = constraints.maxWidth >= 840;
+        final bool isDesktopOrTablet = constraints.maxWidth >= 640;
 
-        final pages = [
-          HomePage(courses: courses),
-          CoursesPage(courses: courses),
-          ProfilePage(studentId: studentId, studentName: studentName),
+        final List<Widget> pages = [
+          DashboardHomePage(courses: _courses),
+          CoursesListPage(courses: _courses),
+          FavoritesPlaceholderPage(),
         ];
 
-        if (isExpanded) {
+        if (isDesktopOrTablet) {
+          // Layout Layar Lebar: NavigationRail di sebelah kiri
           return Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                'Course Explorer (Tahap 1)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              elevation: 1,
+            ),
             body: Row(
               children: [
                 NavigationRail(
                   selectedIndex: _selectedIndex,
-                  onDestinationSelected: (index) =>
-                      setState(() => _selectedIndex = index),
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
                   labelType: NavigationRailLabelType.all,
+                  leading: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Icon(Icons.school, size: 36, color: Colors.blue),
+                  ),
                   destinations: const [
                     NavigationRailDestination(
-                      icon: Icon(Icons.home),
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
                       label: Text('Home'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.school),
+                      icon: Icon(Icons.menu_book_outlined),
+                      selectedIcon: Icon(Icons.menu_book),
                       label: Text('Courses'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.person),
-                      label: Text('Profile'),
+                      icon: Icon(Icons.favorite_border),
+                      selectedIcon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
                     ),
                   ],
                 ),
-                const VerticalDivider(width: 1),
+                const VerticalDivider(thickness: 1, width: 1),
                 Expanded(child: pages[_selectedIndex]),
               ],
             ),
           );
         } else {
+          // Layout Mobile / Layar Sempit: NavigationBar di bawah
           return Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                'Course Explorer (Tahap 1)',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              elevation: 1,
+            ),
             body: pages[_selectedIndex],
             bottomNavigationBar: NavigationBar(
               selectedIndex: _selectedIndex,
-              onDestinationSelected: (index) =>
-                  setState(() => _selectedIndex = index),
+              onDestinationSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
               destinations: const [
-                NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
                 NavigationDestination(
-                  icon: Icon(Icons.school),
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.menu_book_outlined),
+                  selectedIcon: Icon(Icons.menu_book),
                   label: 'Courses',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.person),
-                  label: 'Profile',
+                  icon: Icon(Icons.favorite_border),
+                  selectedIcon: Icon(Icons.favorite),
+                  label: 'Favorites',
                 ),
               ],
             ),
@@ -136,134 +179,144 @@ class _MainShellPageState extends State<MainShellPage> {
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.courses});
+// ============================================================================
+// 1. DASHBOARD HOME PAGE (DENGAN IDENTITAS & STATS CARD)
+// ============================================================================
+class DashboardHomePage extends StatelessWidget {
   final List<Map<String, dynamic>> courses;
+
+  const DashboardHomePage({super.key, required this.courses});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Course Explorer - Home')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+    final int doneCount = courses.where((c) => c['status'] == 'done').length;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Selamat Datang di Dashboard Pembelajaran!',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Text('Mahasiswa: $studentName ($studentId)'),
-          const Divider(height: 24),
-          ...courses.map(
-            (course) => Card(
-              child: ListTile(
-                title: Text(course['title']),
-                subtitle: Text('${course['code']} • ${course['status']}'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CourseDetailPage(course: course),
+          // Banner Identitas Mahasiswa (Wajib)
+          Card(
+            elevation: 2,
+            color: Theme.of(context).colorScheme.primaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Theme.of(context)
+                        .colorScheme
+                        .onPrimaryContainer,
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 28,
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$studentId • $studentName',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Worksheet 6 - Local State vs Shared State',
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+          const SizedBox(height: 16),
+
+          // Stat Ringkasan (Cards Responsif)
+          Row(
+            children: [
+              Expanded(
+                child: _buildSummaryCard(
+                  context,
+                  title: 'Total Courses',
+                  value: courses.length.toString(),
+                  icon: Icons.library_books,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSummaryCard(
+                  context,
+                  title: 'Completed',
+                  value: doneCount.toString(),
+                  icon: Icons.check_circle_outline,
+                  color: Colors.green,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          const Text(
+            'Active Modules (Tahap 1 Demo):',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+
+          // List item course card dengan Local State
+          ...courses.take(3).map((c) => ResponsiveCourseCard(courseData: c)),
         ],
       ),
     );
   }
-}
 
-class CoursesPage extends StatelessWidget {
-  const CoursesPage({super.key, required this.courses});
-  final List<Map<String, dynamic>> courses;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Semua Kursus')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          int crossAxisCount = constraints.maxWidth < 600 ? 1 : 2;
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 2.5,
-            ),
-            itemCount: courses.length,
-            itemBuilder: (context, index) {
-              final c = courses[index];
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        c['title'],
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text('${c['code']} - ${c['credits']} SKS'),
-                      Text('Status: ${c['status']}'),
-                    ],
+  Widget _buildSummaryCard(
+    BuildContext context, {
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+        child: Row(
+          children: [
+            Icon(icon, size: 30, color: color),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class CourseDetailPage extends StatelessWidget {
-  const CourseDetailPage({super.key, required this.course});
-  final Map<String, dynamic> course;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(course['title'])),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Kode: ${course['code']}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'SKS: ${course['credits']}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Status: ${course['status']}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pengampu: ${course['instructor']}',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-              icon: const Icon(Icons.favorite),
-              label: const Text('Tandai Favorit & Kembali'),
+              ],
             ),
           ],
         ),
@@ -272,81 +325,185 @@ class CourseDetailPage extends StatelessWidget {
   }
 }
 
-class ProfilePage extends StatefulWidget {
-  const ProfilePage({
-    super.key,
-    required this.studentId,
-    required this.studentName,
-  });
-  final String studentId;
-  final String studentName;
+// ============================================================================
+// 2. COURSES LIST PAGE
+// ============================================================================
+class CoursesListPage extends StatelessWidget {
+  final List<Map<String, dynamic>> courses;
 
-  @override
-  State<ProfilePage> createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends State<ProfilePage> {
-  final _formKey = GlobalKey<FormState>();
-  final _commentController = TextEditingController();
+  const CoursesListPage({super.key, required this.courses});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profil & Feedback')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              Text(
-                'Nama: ${widget.studentName}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'NIM: ${widget.studentId}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Divider(height: 32),
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(
-                  labelText: 'Kritik & Saran Aplikasi',
-                ),
-                maxLines: 3,
-                validator: (value) => value == null || value.trim().length < 5
-                    ? 'Minimal 5 karakter'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Sukses'),
-                        content: const Text('Feedback berhasil dikirim!'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('OK'),
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: courses.length,
+      itemBuilder: (context, index) {
+        return ResponsiveCourseCard(courseData: courses[index]);
+      },
+    );
+  }
+}
+
+// ============================================================================
+// 3. WIDGET DENGAN LOCAL STATE (FOKUS TAHAP 1)
+// Menggunakan setState() untuk mengelola interaksi buka-tutup dan toggle lokal
+// ============================================================================
+class ResponsiveCourseCard extends StatefulWidget {
+  final Map<String, dynamic> courseData;
+
+  const ResponsiveCourseCard({super.key, required this.courseData});
+
+  @override
+  State<ResponsiveCourseCard> createState() => _ResponsiveCourseCardState();
+}
+
+class _ResponsiveCourseCardState extends State<ResponsiveCourseCard> {
+  // [LOCAL STATE]: Status expand dan toggle lokal item ini
+  bool _isExpanded = false;
+  bool _isLocalFavorite = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = widget.courseData['status'] as String;
+
+    Color badgeColor = Colors.orange;
+    if (status == 'done') badgeColor = Colors.green;
+    if (status == 'active') badgeColor = Colors.blue;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(14.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.courseData['title'] as String,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: badgeColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              status.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: badgeColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${widget.courseData['code']} • ${widget.courseData['credits']} SKS',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                            ),
                           ),
                         ],
                       ),
-                    );
-                  }
-                },
-                child: const Text('Kirim Umpan Balik'),
+                    ],
+                  ),
+                ),
+                // Local State Action 1: Toggle Bookmark Lokal
+                IconButton(
+                  tooltip: 'Toggle Local Favorite',
+                  icon: Icon(
+                    _isLocalFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: _isLocalFavorite ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isLocalFavorite = !_isLocalFavorite;
+                    });
+                  },
+                ),
+                // Local State Action 2: Toggle Expand/Collapse Detail
+                IconButton(
+                  tooltip: 'Detail Info',
+                  icon: Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                  },
+                ),
+              ],
+            ),
+            // Rebuild terjadi hanya pada widget lokal ini saat di-expand
+            if (_isExpanded) ...[
+              const Divider(height: 18),
+              Text(
+                widget.courseData['desc'] as String,
+                style: const TextStyle(fontSize: 13, color: Colors.black87),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                '* Catatan Tahap 1: State kartu ini (expand & icon favorite) dikelola secara lokal menggunakan setState().',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.black45,
+                ),
               ),
             ],
-          ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// 4. FAVORITES PLACEHOLDER PAGE
+// ============================================================================
+class FavoritesPlaceholderPage extends StatelessWidget {
+  const FavoritesPlaceholderPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.favorite_outline, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
+            const Text(
+              'Favorites Screen',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Pada Tahap 1, daftar favorit masih berupa Local State pada tiap kartu di tab Courses sehingga belum tersinkronisasi di tab ini.\n(Akan disatukan dengan Shared State Provider pada Tahap berikutnya).',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.black54),
+            ),
+          ],
         ),
       ),
     );
