@@ -3,11 +3,18 @@ import 'package:provider/provider.dart';
 
 import 'providers/course_provider.dart';
 
-// Identitas mahasiswa
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
-// Data contoh mata kuliah
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CourseProvider(),
+      child: const MyApp(),
+    ),
+  );
+}
+
 class Course {
   final String code;
   final String title;
@@ -24,51 +31,42 @@ class Course {
 
 const List<Course> courseList = [
   Course(
-    code: 'PTI601',
+    code: 'PTI101',
     title: 'Pemrograman Mobile',
     credits: 3,
     status: 'Sedang Dipelajari',
   ),
   Course(
-    code: 'PTI602',
+    code: 'PTI102',
     title: 'Pemrograman Berorientasi Objek',
     credits: 3,
     status: 'Sedang Dipelajari',
   ),
   Course(
-    code: 'PTI603',
+    code: 'PTI103',
     title: 'Jaringan Komputer',
     credits: 3,
-    status: 'Sedang Dipelajari',
+    status: 'Selesai',
   ),
   Course(
-    code: 'PTI604',
-    title: 'Strategi Pembelajaran',
-    credits: 2,
-    status: 'Sedang Dipelajari',
-  ),
-  Course(
-    code: 'PTI605',
-    title: 'Rekayasa Perangkat Lunak',
-    credits: 3,
-    status: 'Belum Dipelajari',
-  ),
-  Course(
-    code: 'PTI606',
+    code: 'PTI104',
     title: 'Basis Data',
     credits: 3,
-    status: 'Belum Dipelajari',
+    status: 'Sedang Dipelajari',
+  ),
+  Course(
+    code: 'PTI105',
+    title: 'Strategi Pembelajaran',
+    credits: 2,
+    status: 'Selesai',
+  ),
+  Course(
+    code: 'PTI106',
+    title: 'Sistem Operasi',
+    credits: 3,
+    status: 'Sedang Dipelajari',
   ),
 ];
-
-void main() {
-  runApp(
-    ChangeNotifierProvider<CourseProvider>(
-      create: (context) => CourseProvider(),
-      child: const MyApp(),
-    ),
-  );
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -76,17 +74,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
+      title: 'Course Explorer',
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        scaffoldBackgroundColor: const Color(0xFFF5F7FB),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          centerTitle: false,
-        ),
       ),
       home: const CourseHomePage(),
     );
@@ -101,24 +93,41 @@ class CourseHomePage extends StatefulWidget {
 }
 
 class _CourseHomePageState extends State<CourseHomePage> {
-  // Local state: filter pencarian hanya digunakan halaman ini.
-  String searchQuery = '';
+  final TextEditingController searchController = TextEditingController();
 
-  // Local state: filter kategori pada halaman ini.
   String selectedFilter = 'Semua';
 
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
   List<Course> get filteredCourses {
+    final keyword = searchController.text.toLowerCase();
+
+    // Membaca daftar favorit untuk kebutuhan filter.
+    final provider = context.read<CourseProvider>();
+
     return courseList.where((course) {
       final matchesSearch =
-          course.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
-          course.code.toLowerCase().contains(searchQuery.toLowerCase());
+          course.title.toLowerCase().contains(keyword) ||
+          course.code.toLowerCase().contains(keyword);
 
-      final matchesFilter =
-          selectedFilter == 'Semua' ||
-          (selectedFilter == 'Favorit' &&
-              context.read<CourseProvider>().isFavorite(course.code)) ||
-          (selectedFilter == 'Belum Favorit' &&
-              !context.read<CourseProvider>().isFavorite(course.code));
+      final isFavorite = provider.isFavorite(course.code);
+
+      bool matchesFilter;
+
+      switch (selectedFilter) {
+        case 'Favorit':
+          matchesFilter = isFavorite;
+          break;
+        case 'Belum Favorit':
+          matchesFilter = !isFavorite;
+          break;
+        default:
+          matchesFilter = true;
+      }
 
       return matchesSearch && matchesFilter;
     }).toList();
@@ -126,7 +135,8 @@ class _CourseHomePageState extends State<CourseHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Shared state: widget mendengarkan perubahan CourseProvider.
+    // WATCH: widget ini mendengarkan perubahan pada CourseProvider.
+    // Ketika jumlah favorit berubah, tampilan halaman dibangun ulang.
     final provider = context.watch<CourseProvider>();
 
     final courses = filteredCourses;
@@ -140,298 +150,202 @@ class _CourseHomePageState extends State<CourseHomePage> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: Row(
-                children: [
-                  const Icon(Icons.favorite, color: Colors.white),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${provider.favoriteCount}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+            child: Row(
+              children: [
+                const Icon(Icons.favorite, color: Colors.red),
+                const SizedBox(width: 6),
+
+                // Jumlah favorit diperbarui melalui context.watch().
+                Text(
+                  '${provider.favoriteCount}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 650;
-
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1000),
-                child: Column(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Identitas mahasiswa
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
                   children: [
-                    // Identitas mahasiswa
-                    _buildStudentHeader(),
-
-                    // Informasi jumlah mata kuliah
-                    _buildSummary(provider.favoriteCount),
-
-                    // Pencarian
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Cari mata kuliah...',
-                          prefixIcon: const Icon(Icons.search),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            searchQuery = value;
-                          });
-                        },
-                      ),
+                    const CircleAvatar(
+                      radius: 28,
+                      child: Icon(Icons.person, size: 30),
                     ),
-
-                    // Filter mata kuliah
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
-                      child: Row(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildFilterChip('Semua'),
-                          _buildFilterChip('Favorit'),
-                          _buildFilterChip('Belum Favorit'),
-                        ],
-                      ),
-                    ),
-
-                    // Judul daftar
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Daftar Mata Kuliah',
-                              style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          const Text(
+                            studentName,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
                           ),
-                          Text(
-                            '${courses.length} mata kuliah',
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
+                          const SizedBox(height: 4),
+                          Text('NIM: $studentId'),
+                          const Text('Pendidikan Teknik Informatika'),
                         ],
-                      ),
-                    ),
-
-                    // Daftar mata kuliah
-                    Expanded(
-                      child: courses.isEmpty
-                          ? _buildEmptyState()
-                          : isWide
-                          ? _buildGrid(courses)
-                          : _buildList(courses),
-                    ),
-
-                    // Identitas bagian bawah
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      color: Colors.white,
-                      child: const Text(
-                        '$studentName | NIM: $studentId',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ),
                   ],
                 ),
               ),
-            );
-          },
-        ),
-      ),
-    );
-  }
+            ),
 
-  Widget _buildStudentHeader() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.blue.shade100,
-            child: const Icon(Icons.person, size: 32, color: Colors.blue),
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 16),
+
+            // Ringkasan jumlah mata kuliah dan favorit
+            Row(
               children: [
-                Text(
-                  studentName,
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                Expanded(
+                  child: SummaryCard(
+                    title: 'Total Mata Kuliah',
+                    value: '${courseList.length}',
+                    icon: Icons.menu_book,
+                    color: Colors.indigo,
+                  ),
                 ),
-                SizedBox(height: 5),
-                Text('NIM: $studentId'),
-                SizedBox(height: 4),
-                Text('Pemrograman Mobile - Pertemuan 6'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummary(int favoriteCount) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildSummaryCard(
-              icon: Icons.menu_book,
-              title: 'Total Course',
-              value: '${courseList.length}',
-              color: Colors.blue,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildSummaryCard(
-              icon: Icons.favorite,
-              title: 'Favorit',
-              value: '$favoriteCount',
-              color: Colors.red,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 21,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SummaryCard(
+                    title: 'Mata Kuliah Favorit',
+                    value: '${provider.favoriteCount}',
+                    icon: Icons.favorite,
+                    color: Colors.red,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildFilterChip(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selectedFilter == label,
-        onSelected: (selected) {
-          if (!selected) return;
+            const SizedBox(height: 20),
 
-          setState(() {
-            selectedFilter = label;
-          });
-        },
-      ),
-    );
-  }
+            const Text(
+              'Daftar Mata Kuliah',
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+            ),
 
-  Widget _buildList(List<Course> courses) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: courses.length,
-      itemBuilder: (context, index) {
-        return CourseCard(course: courses[index]);
-      },
-    );
-  }
-
-  Widget _buildGrid(List<Course> courses) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 420,
-        mainAxisExtent: 125,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: courses.length,
-      itemBuilder: (context, index) {
-        return CourseCard(course: courses[index]);
-      },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off, size: 60, color: Colors.grey.shade400),
             const SizedBox(height: 12),
-            const Text(
-              'Mata kuliah tidak ditemukan',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+
+            // Kolom pencarian
+            TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari nama atau kode mata kuliah...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onChanged: (_) {
+                setState(() {});
+              },
             ),
-            const SizedBox(height: 6),
-            const Text(
-              'Coba kata kunci atau filter lainnya.',
-              textAlign: TextAlign.center,
+
+            const SizedBox(height: 12),
+
+            // Filter daftar mata kuliah
+            DropdownButtonFormField<String>(
+              value: selectedFilter,
+              decoration: const InputDecoration(
+                labelText: 'Filter mata kuliah',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'Semua', child: Text('Semua')),
+                DropdownMenuItem(value: 'Favorit', child: Text('Favorit')),
+                DropdownMenuItem(
+                  value: 'Belum Favorit',
+                  child: Text('Belum Favorit'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  selectedFilter = value ?? 'Semua';
+                });
+              },
             ),
+
+            const SizedBox(height: 16),
+
+            // Daftar mata kuliah
+            if (courses.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(
+                  child: Text(
+                    'Mata kuliah tidak ditemukan.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            else
+              ...courses.map((course) => CourseCard(course: course)),
+
+            const SizedBox(height: 20),
+
+            // Tombol menghapus semua favorit
+            OutlinedButton.icon(
+              onPressed: provider.favoriteCount == 0
+                  ? null
+                  : () {
+                      // READ: hanya memanggil aksi,
+                      // tidak memasang listener baru.
+                      context.read<CourseProvider>().clearFavorites();
+                    },
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Hapus Semua Favorit'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SummaryCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const SummaryCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 10),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(title),
           ],
         ),
       ),
@@ -446,68 +360,52 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Membaca state Provider untuk menentukan ikon favorit.
-    final provider = context.watch<CourseProvider>();
-    final isFavorite = provider.isFavorite(course.code);
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.white,
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.blue.shade50,
-              child: const Icon(Icons.menu_book, color: Colors.blue),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    course.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    '${course.code} • ${course.credits} SKS',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    course.status,
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              tooltip: isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit',
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: CircleAvatar(
+          backgroundColor: Colors.indigo.shade50,
+          child: const Icon(Icons.menu_book, color: Colors.indigo),
+        ),
+
+        title: Text(
+          course.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            '${course.code} • ${course.credits} SKS\n'
+            'Status: ${course.status}',
+          ),
+        ),
+
+        isThreeLine: true,
+
+        // CONSUMER: hanya bagian ikon favorit yang mendengarkan
+        // perubahan CourseProvider.
+        trailing: Consumer<CourseProvider>(
+          builder: (context, provider, child) {
+            final isFavorite = provider.isFavorite(course.code);
+
+            return IconButton(
+              tooltip: isFavorite
+                  ? 'Hapus dari favorit'
+                  : 'Tambahkan ke favorit',
+
+              // READ: memanggil aksi toggle tanpa listen.
               onPressed: () {
-                // read() dipakai untuk menjalankan aksi
-                // tanpa membuat listener baru.
                 context.read<CourseProvider>().toggleFavorite(course.code);
               },
+
               icon: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
                 color: isFavorite ? Colors.red : Colors.grey,
-                size: 27,
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
