@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'models/course.dart';
 import 'providers/course_provider.dart';
 
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
+
+// Contoh data Map yang bentuknya menyerupai data JSON.
+final Map<String, dynamic> sampleCourseJson = {
+  'code': 'PTI107',
+  'title': 'Pemodelan Data JSON',
+  'credits': 3,
+  'status': 'Contoh Hasil Parsing',
+};
 
 void main() {
   runApp(
@@ -15,19 +24,8 @@ void main() {
   );
 }
 
-class Course {
-  final String code;
-  final String title;
-  final int credits;
-  final String status;
-
-  const Course({
-    required this.code,
-    required this.title,
-    required this.credits,
-    required this.status,
-  });
-}
+// Mengubah Map menjadi object Course menggunakan fromJson().
+final Course parsedCourse = Course.fromJson(sampleCourseJson);
 
 const List<Course> courseList = [
   Course(
@@ -105,8 +103,6 @@ class _CourseHomePageState extends State<CourseHomePage> {
 
   List<Course> get filteredCourses {
     final keyword = searchController.text.toLowerCase();
-
-    // Membaca daftar favorit untuk kebutuhan filter.
     final provider = context.read<CourseProvider>();
 
     return courseList.where((course) {
@@ -114,16 +110,16 @@ class _CourseHomePageState extends State<CourseHomePage> {
           course.title.toLowerCase().contains(keyword) ||
           course.code.toLowerCase().contains(keyword);
 
-      final isFavorite = provider.isFavorite(course.code);
+      final favorite = provider.isFavorite(course.code);
 
       bool matchesFilter;
 
       switch (selectedFilter) {
         case 'Favorit':
-          matchesFilter = isFavorite;
+          matchesFilter = favorite;
           break;
         case 'Belum Favorit':
-          matchesFilter = !isFavorite;
+          matchesFilter = !favorite;
           break;
         default:
           matchesFilter = true;
@@ -135,10 +131,8 @@ class _CourseHomePageState extends State<CourseHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // WATCH: widget ini mendengarkan perubahan pada CourseProvider.
-    // Ketika jumlah favorit berubah, tampilan halaman dibangun ulang.
+    // Tahap 7: watch mendengarkan perubahan state Provider.
     final provider = context.watch<CourseProvider>();
-
     final courses = filteredCourses;
 
     return Scaffold(
@@ -154,8 +148,6 @@ class _CourseHomePageState extends State<CourseHomePage> {
               children: [
                 const Icon(Icons.favorite, color: Colors.red),
                 const SizedBox(width: 6),
-
-                // Jumlah favorit diperbarui melalui context.watch().
                 Text(
                   '${provider.favoriteCount}',
                   style: const TextStyle(
@@ -168,7 +160,6 @@ class _CourseHomePageState extends State<CourseHomePage> {
           ),
         ],
       ),
-
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -184,20 +175,20 @@ class _CourseHomePageState extends State<CourseHomePage> {
                       child: Icon(Icons.person, size: 30),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
+                    const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             studentName,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text('NIM: $studentId'),
-                          const Text('Pendidikan Teknik Informatika'),
+                          Text('Pendidikan Teknik Informatika'),
                         ],
                       ),
                     ),
@@ -208,7 +199,7 @@ class _CourseHomePageState extends State<CourseHomePage> {
 
             const SizedBox(height: 16),
 
-            // Ringkasan jumlah mata kuliah dan favorit
+            // Ringkasan aplikasi
             Row(
               children: [
                 Expanded(
@@ -231,16 +222,41 @@ class _CourseHomePageState extends State<CourseHomePage> {
               ],
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
+
+            // Bagian baru untuk membuktikan Course.fromJson().
+            const Text(
+              'Hasil Parsing Model Course',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text('Data Map berhasil diubah menjadi objek Course.'),
+            const SizedBox(height: 8),
+
+            Card(
+              color: Colors.indigo.shade50,
+              child: ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.data_object)),
+                title: Text(parsedCourse.title),
+                subtitle: Text(
+                  'Kode: ${parsedCourse.code}\n'
+                  'SKS: ${parsedCourse.credits}\n'
+                  'Status: ${parsedCourse.status}',
+                ),
+                isThreeLine: true,
+                trailing: const Icon(Icons.check_circle, color: Colors.green),
+              ),
+            ),
+
+            const SizedBox(height: 24),
 
             const Text(
               'Daftar Mata Kuliah',
               style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
 
-            // Kolom pencarian
+            // Pencarian
             TextField(
               controller: searchController,
               decoration: InputDecoration(
@@ -257,7 +273,7 @@ class _CourseHomePageState extends State<CourseHomePage> {
 
             const SizedBox(height: 12),
 
-            // Filter daftar mata kuliah
+            // Filter
             DropdownButtonFormField<String>(
               value: selectedFilter,
               decoration: const InputDecoration(
@@ -281,7 +297,7 @@ class _CourseHomePageState extends State<CourseHomePage> {
 
             const SizedBox(height: 16),
 
-            // Daftar mata kuliah
+            // Daftar mata kuliah yang sudah ada sejak Tahap 7.
             if (courses.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(24),
@@ -297,13 +313,11 @@ class _CourseHomePageState extends State<CourseHomePage> {
 
             const SizedBox(height: 20),
 
-            // Tombol menghapus semua favorit
             OutlinedButton.icon(
               onPressed: provider.favoriteCount == 0
                   ? null
                   : () {
-                      // READ: hanya memanggil aksi,
-                      // tidak memasang listener baru.
+                      // Tahap 7: read dipakai untuk menjalankan aksi.
                       context.read<CourseProvider>().clearFavorites();
                     },
               icon: const Icon(Icons.delete_outline),
@@ -368,24 +382,17 @@ class CourseCard extends StatelessWidget {
           backgroundColor: Colors.indigo.shade50,
           child: const Icon(Icons.menu_book, color: Colors.indigo),
         ),
-
         title: Text(
           course.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text(
-            '${course.code} • ${course.credits} SKS\n'
-            'Status: ${course.status}',
-          ),
+        subtitle: Text(
+          '${course.code} • ${course.credits} SKS\n'
+          'Status: ${course.status}',
         ),
-
         isThreeLine: true,
 
-        // CONSUMER: hanya bagian ikon favorit yang mendengarkan
-        // perubahan CourseProvider.
+        // Tahap 7: Consumer membatasi area yang mendengarkan state.
         trailing: Consumer<CourseProvider>(
           builder: (context, provider, child) {
             final isFavorite = provider.isFavorite(course.code);
@@ -394,12 +401,9 @@ class CourseCard extends StatelessWidget {
               tooltip: isFavorite
                   ? 'Hapus dari favorit'
                   : 'Tambahkan ke favorit',
-
-              // READ: memanggil aksi toggle tanpa listen.
               onPressed: () {
                 context.read<CourseProvider>().toggleFavorite(course.code);
               },
-
               icon: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
                 color: isFavorite ? Colors.red : Colors.grey,
