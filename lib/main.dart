@@ -3,17 +3,20 @@ import 'package:provider/provider.dart';
 
 import 'models/course.dart';
 import 'providers/course_provider.dart';
+import 'services/course_service.dart';
 
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
-// Contoh data Map yang bentuknya menyerupai data JSON.
+// Contoh parsing dari Tahap 8 tetap dipertahankan.
 final Map<String, dynamic> sampleCourseJson = {
   'code': 'PTI107',
   'title': 'Pemodelan Data JSON',
   'credits': 3,
   'status': 'Contoh Hasil Parsing',
 };
+
+final Course parsedCourse = Course.fromJson(sampleCourseJson);
 
 void main() {
   runApp(
@@ -23,48 +26,6 @@ void main() {
     ),
   );
 }
-
-// Mengubah Map menjadi object Course menggunakan fromJson().
-final Course parsedCourse = Course.fromJson(sampleCourseJson);
-
-const List<Course> courseList = [
-  Course(
-    code: 'PTI101',
-    title: 'Pemrograman Mobile',
-    credits: 3,
-    status: 'Sedang Dipelajari',
-  ),
-  Course(
-    code: 'PTI102',
-    title: 'Pemrograman Berorientasi Objek',
-    credits: 3,
-    status: 'Sedang Dipelajari',
-  ),
-  Course(
-    code: 'PTI103',
-    title: 'Jaringan Komputer',
-    credits: 3,
-    status: 'Selesai',
-  ),
-  Course(
-    code: 'PTI104',
-    title: 'Basis Data',
-    credits: 3,
-    status: 'Sedang Dipelajari',
-  ),
-  Course(
-    code: 'PTI105',
-    title: 'Strategi Pembelajaran',
-    credits: 2,
-    status: 'Selesai',
-  ),
-  Course(
-    code: 'PTI106',
-    title: 'Sistem Operasi',
-    credits: 3,
-    status: 'Sedang Dipelajari',
-  ),
-];
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -78,62 +39,41 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const CourseHomePage(),
+      home: const CourseExplorerPage(),
     );
   }
 }
 
-class CourseHomePage extends StatefulWidget {
-  const CourseHomePage({super.key});
+class CourseExplorerPage extends StatefulWidget {
+  const CourseExplorerPage({super.key});
 
   @override
-  State<CourseHomePage> createState() => _CourseHomePageState();
+  State<CourseExplorerPage> createState() => _CourseExplorerPageState();
 }
 
-class _CourseHomePageState extends State<CourseHomePage> {
-  final TextEditingController searchController = TextEditingController();
+class _CourseExplorerPageState extends State<CourseExplorerPage> {
+  final CourseService _courseService = CourseService();
 
-  String selectedFilter = 'Semua';
+  late Future<List<Course>> _coursesFuture;
+
+  String searchQuery = '';
+  bool showFavoritesOnly = false;
 
   @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _coursesFuture = _courseService.loadCourses();
   }
 
-  List<Course> get filteredCourses {
-    final keyword = searchController.text.toLowerCase();
-    final provider = context.read<CourseProvider>();
-
-    return courseList.where((course) {
-      final matchesSearch =
-          course.title.toLowerCase().contains(keyword) ||
-          course.code.toLowerCase().contains(keyword);
-
-      final favorite = provider.isFavorite(course.code);
-
-      bool matchesFilter;
-
-      switch (selectedFilter) {
-        case 'Favorit':
-          matchesFilter = favorite;
-          break;
-        case 'Belum Favorit':
-          matchesFilter = !favorite;
-          break;
-        default:
-          matchesFilter = true;
-      }
-
-      return matchesSearch && matchesFilter;
-    }).toList();
+  void reloadCourses() {
+    setState(() {
+      _coursesFuture = _courseService.loadCourses();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tahap 7: watch mendengarkan perubahan state Provider.
     final provider = context.watch<CourseProvider>();
-    final courses = filteredCourses;
 
     return Scaffold(
       appBar: AppBar(
@@ -146,13 +86,13 @@ class _CourseHomePageState extends State<CourseHomePage> {
             padding: const EdgeInsets.only(right: 16),
             child: Row(
               children: [
-                const Icon(Icons.favorite, color: Colors.red),
+                const Icon(Icons.favorite, color: Colors.redAccent),
                 const SizedBox(width: 6),
                 Text(
                   '${provider.favoriteCount}',
                   style: const TextStyle(
-                    fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
               ],
@@ -160,208 +100,176 @@ class _CourseHomePageState extends State<CourseHomePage> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Identitas mahasiswa
-            Card(
+      body: FutureBuilder<List<Course>>(
+        future: _coursesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const CircleAvatar(
-                      radius: 28,
-                      child: Icon(Icons.person, size: 30),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.red,
                     ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            studentName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text('NIM: $studentId'),
-                          Text('Pendidikan Teknik Informatika'),
-                        ],
-                      ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Gagal memuat data mata kuliah.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text('${snapshot.error}', textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: reloadCourses,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Coba Lagi'),
                     ),
                   ],
                 ),
               ),
-            ),
+            );
+          }
 
-            const SizedBox(height: 16),
+          final courses = snapshot.data ?? <Course>[];
 
-            // Ringkasan aplikasi
-            Row(
-              children: [
-                Expanded(
-                  child: SummaryCard(
-                    title: 'Total Mata Kuliah',
-                    value: '${courseList.length}',
-                    icon: Icons.menu_book,
-                    color: Colors.indigo,
+          final filteredCourses = courses.where((course) {
+            final query = searchQuery.toLowerCase();
+
+            final matchesSearch =
+                course.title.toLowerCase().contains(query) ||
+                course.code.toLowerCase().contains(query);
+
+            final matchesFavorite =
+                !showFavoritesOnly || provider.isFavorite(course.code);
+
+            return matchesSearch && matchesFavorite;
+          }).toList();
+
+          return Column(
+            children: [
+              // Identitas mahasiswa.
+              Card(
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.person)),
+                  title: const Text(
+                    studentName,
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SummaryCard(
-                    title: 'Mata Kuliah Favorit',
-                    value: '${provider.favoriteCount}',
-                    icon: Icons.favorite,
-                    color: Colors.red,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Bagian baru untuk membuktikan Course.fromJson().
-            const Text(
-              'Hasil Parsing Model Course',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text('Data Map berhasil diubah menjadi objek Course.'),
-            const SizedBox(height: 8),
-
-            Card(
-              color: Colors.indigo.shade50,
-              child: ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.data_object)),
-                title: Text(parsedCourse.title),
-                subtitle: Text(
-                  'Kode: ${parsedCourse.code}\n'
-                  'SKS: ${parsedCourse.credits}\n'
-                  'Status: ${parsedCourse.status}',
-                ),
-                isThreeLine: true,
-                trailing: const Icon(Icons.check_circle, color: Colors.green),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              'Daftar Mata Kuliah',
-              style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-
-            // Pencarian
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Cari nama atau kode mata kuliah...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  subtitle: Text('NIM: $studentId'),
                 ),
               ),
-              onChanged: (_) {
-                setState(() {});
-              },
-            ),
 
-            const SizedBox(height: 12),
-
-            // Filter
-            DropdownButtonFormField<String>(
-              value: selectedFilter,
-              decoration: const InputDecoration(
-                labelText: 'Filter mata kuliah',
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'Semua', child: Text('Semua')),
-                DropdownMenuItem(value: 'Favorit', child: Text('Favorit')),
-                DropdownMenuItem(
-                  value: 'Belum Favorit',
-                  child: Text('Belum Favorit'),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  selectedFilter = value ?? 'Semua';
-                });
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // Daftar mata kuliah yang sudah ada sejak Tahap 7.
-            if (courses.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(
-                  child: Text(
-                    'Mata kuliah tidak ditemukan.',
-                    textAlign: TextAlign.center,
+              // Hasil parsing dari Tahap 8.
+              Card(
+                margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Hasil Parsing Model Course',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('Kode: ${parsedCourse.code}'),
+                      Text('Nama: ${parsedCourse.title}'),
+                      Text('SKS: ${parsedCourse.credits}'),
+                      Text('Status: ${parsedCourse.status}'),
+                    ],
                   ),
                 ),
-              )
-            else
-              ...courses.map((course) => CourseCard(course: course)),
+              ),
 
-            const SizedBox(height: 20),
+              // Pencarian mata kuliah.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Cari mata kuliah...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
 
-            OutlinedButton.icon(
-              onPressed: provider.favoriteCount == 0
-                  ? null
-                  : () {
-                      // Tahap 7: read dipakai untuk menjalankan aksi.
-                      context.read<CourseProvider>().clearFavorites();
-                    },
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Hapus Semua Favorit'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+              // Filter seluruh mata kuliah atau favorites.
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ChoiceChip(
+                        label: const Text('Semua Mata Kuliah'),
+                        selected: !showFavoritesOnly,
+                        onSelected: (_) {
+                          setState(() {
+                            showFavoritesOnly = false;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Favorites'),
+                      selected: showFavoritesOnly,
+                      onSelected: (_) {
+                        setState(() {
+                          showFavoritesOnly = true;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
 
-class SummaryCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
+              // Daftar data yang dimuat melalui CourseService.
+              Expanded(
+                child: filteredCourses.isEmpty
+                    ? Center(
+                        child: Text(
+                          showFavoritesOnly
+                              ? 'Belum ada mata kuliah favorit.'
+                              : 'Mata kuliah tidak ditemukan.',
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                        itemCount: filteredCourses.length,
+                        itemBuilder: (context, index) {
+                          final course = filteredCourses[index];
 
-  const SummaryCard({
-    super.key,
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 10),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(title),
-          ],
-        ),
+                          return CourseCard(course: course);
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -374,41 +282,38 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isFavorite = context.select<CourseProvider, bool>(
+      (provider) => provider.isFavorite(course.code),
+    );
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: Colors.indigo.shade50,
-          child: const Icon(Icons.menu_book, color: Colors.indigo),
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          child: const Icon(Icons.menu_book),
         ),
         title: Text(
           course.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          '${course.code} • ${course.credits} SKS\n'
-          'Status: ${course.status}',
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            'Kode: ${course.code}\n'
+            'SKS: ${course.credits} | Status: ${course.status}',
+          ),
         ),
         isThreeLine: true,
-
-        // Tahap 7: Consumer membatasi area yang mendengarkan state.
-        trailing: Consumer<CourseProvider>(
-          builder: (context, provider, child) {
-            final isFavorite = provider.isFavorite(course.code);
-
-            return IconButton(
-              tooltip: isFavorite
-                  ? 'Hapus dari favorit'
-                  : 'Tambahkan ke favorit',
-              onPressed: () {
-                context.read<CourseProvider>().toggleFavorite(course.code);
-              },
-              icon: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: isFavorite ? Colors.red : Colors.grey,
-              ),
-            );
+        trailing: IconButton(
+          tooltip: isFavorite ? 'Hapus dari favorites' : 'Tambah ke favorites',
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : null,
+          ),
+          onPressed: () {
+            context.read<CourseProvider>().toggleFavorite(course.code);
           },
         ),
       ),
