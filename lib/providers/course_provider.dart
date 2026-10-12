@@ -8,14 +8,12 @@ class CourseProvider extends ChangeNotifier {
 
   CourseProvider(this.repository);
 
-  // State data mata kuliah
+  // Async state.
   List<Course> courses = [];
-
-  // State loading dan error
   bool isLoading = false;
   String? error;
 
-  // State favorites
+  // Shared favorite state dari tahap sebelumnya.
   final Set<String> _favorites = <String>{};
 
   Set<String> get favorites => Set.unmodifiable(_favorites);
@@ -26,7 +24,24 @@ class CourseProvider extends ChangeNotifier {
     return _favorites.contains(code);
   }
 
-  // Mengambil data melalui Repository
+  void toggleFavorite(String code) {
+    if (_favorites.contains(code)) {
+      _favorites.remove(code);
+    } else {
+      _favorites.add(code);
+    }
+
+    notifyListeners();
+  }
+
+  void clearFavorites() {
+    if (_favorites.isEmpty) return;
+
+    _favorites.clear();
+    notifyListeners();
+  }
+
+  // Memuat data melalui Repository.
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
@@ -40,24 +55,5 @@ class CourseProvider extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
-  }
-
-  // Menambah atau menghapus mata kuliah favorit
-  void toggleFavorite(String code) {
-    if (_favorites.contains(code)) {
-      _favorites.remove(code);
-    } else {
-      _favorites.add(code);
-    }
-
-    notifyListeners();
-  }
-
-  // Menghapus semua favorit
-  void clearFavorites() {
-    if (_favorites.isEmpty) return;
-
-    _favorites.clear();
-    notifyListeners();
   }
 }

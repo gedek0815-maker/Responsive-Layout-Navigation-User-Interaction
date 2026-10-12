@@ -9,7 +9,7 @@ import 'services/course_service.dart';
 const String studentName = 'Gede Krisna Adi Pramana';
 const String studentId = '2415051036';
 
-// Contoh parsing JSON dari Tahap 8.
+// Contoh parsing dari Tahap 8.
 final Map<String, dynamic> sampleCourseJson = {
   'code': 'PTI107',
   'title': 'Pemodelan Data JSON',
@@ -58,13 +58,18 @@ class CourseExplorerPage extends StatefulWidget {
 class _CourseExplorerPageState extends State<CourseExplorerPage> {
   String searchQuery = '';
   bool showFavoritesOnly = false;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-    // Memuat data saat halaman pertama kali dibuka.
-    Future.microtask(() => context.read<CourseProvider>().loadCourses());
+    if (!_initialized) {
+      _initialized = true;
+
+      // Memulai pemuatan data satu kali saat halaman dibuka.
+      Future.microtask(() => context.read<CourseProvider>().loadCourses());
+    }
   }
 
   @override
@@ -96,167 +101,159 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
           ),
         ],
       ),
-      body: _buildBody(provider),
-    );
-  }
-
-  Widget _buildBody(CourseProvider provider) {
-    // STATE 1: Loading
-    if (provider.isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 12),
-            Text('Memuat data mata kuliah...'),
-          ],
-        ),
-      );
-    }
-
-    // STATE 2: Error
-    if (provider.error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
-              const SizedBox(height: 12),
-              const Text(
-                'Gagal memuat data mata kuliah.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      body: Column(
+        children: [
+          // Identitas mahasiswa tetap ditampilkan.
+          Card(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: ListTile(
+              leading: const CircleAvatar(child: Icon(Icons.person)),
+              title: const Text(
+                studentName,
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
-              Text(provider.error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: provider.loadCourses,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Coba Lagi'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // STATE 3: Success
-    final filteredCourses = provider.courses.where((course) {
-      final query = searchQuery.toLowerCase();
-
-      final matchesSearch =
-          course.title.toLowerCase().contains(query) ||
-          course.code.toLowerCase().contains(query);
-
-      final matchesFavorite =
-          !showFavoritesOnly || provider.isFavorite(course.code);
-
-      return matchesSearch && matchesFavorite;
-    }).toList();
-
-    return Column(
-      children: [
-        // Identitas mahasiswa
-        Card(
-          margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: const Text(
-              studentName,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              subtitle: Text('NIM: $studentId'),
             ),
-            subtitle: const Text('NIM: $studentId'),
           ),
-        ),
 
-        // Contoh hasil parsing model Course
-        Card(
-          margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          color: Theme.of(context).colorScheme.secondaryContainer,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Hasil Parsing Model Course',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          // Hasil parsing dari Tahap 8.
+          Card(
+            margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Hasil Parsing Model Course',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Kode: ${parsedCourse.code}'),
+                  Text('Nama: ${parsedCourse.title}'),
+                  Text('SKS: ${parsedCourse.credits}'),
+                  Text('Status: ${parsedCourse.status}'),
+                ],
+              ),
+            ),
+          ),
+
+          // Kolom pencarian.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Cari mata kuliah...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const SizedBox(height: 8),
-                Text('Kode: ${parsedCourse.code}'),
-                Text('Nama: ${parsedCourse.title}'),
-                Text('SKS: ${parsedCourse.credits}'),
-                Text('Status: ${parsedCourse.status}'),
-              ],
-            ),
-          ),
-        ),
-
-        // Pencarian mata kuliah
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: TextField(
-            onChanged: (value) {
-              setState(() {
-                searchQuery = value;
-              });
-            },
-            decoration: InputDecoration(
-              hintText: 'Cari mata kuliah...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
-        ),
 
-        // Filter semua mata kuliah atau favorites
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: ChoiceChip(
-                  label: const Text('Semua Mata Kuliah'),
-                  selected: !showFavoritesOnly,
+          // Filter semua mata kuliah dan favorit.
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ChoiceChip(
+                    label: const Text('Semua Mata Kuliah'),
+                    selected: !showFavoritesOnly,
+                    onSelected: (_) {
+                      setState(() {
+                        showFavoritesOnly = false;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Text('Favorites'),
+                  selected: showFavoritesOnly,
                   onSelected: (_) {
                     setState(() {
-                      showFavoritesOnly = false;
+                      showFavoritesOnly = true;
                     });
                   },
                 ),
-              ),
-              const SizedBox(width: 8),
-              ChoiceChip(
-                label: const Text('Favorites'),
-                selected: showFavoritesOnly,
-                onSelected: (_) {
-                  setState(() {
-                    showFavoritesOnly = true;
-                  });
-                },
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
 
-        // Daftar mata kuliah
-        Expanded(
-          child: filteredCourses.isEmpty
-              ? Center(
-                  child: Text(
-                    showFavoritesOnly
-                        ? 'Belum ada mata kuliah favorit.'
-                        : 'Mata kuliah tidak ditemukan.',
-                  ),
-                )
-              : ListView.builder(
+          // Async state: loading, error, atau success.
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (provider.error != null) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Gagal memuat data mata kuliah.',
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(provider.error!, textAlign: TextAlign.center),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              context.read<CourseProvider>().loadCourses();
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Coba Lagi'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final filteredCourses = provider.courses.where((course) {
+                  final query = searchQuery.toLowerCase();
+
+                  final matchesSearch =
+                      course.title.toLowerCase().contains(query) ||
+                      course.code.toLowerCase().contains(query);
+
+                  final matchesFavorite =
+                      !showFavoritesOnly || provider.isFavorite(course.code);
+
+                  return matchesSearch && matchesFavorite;
+                }).toList();
+
+                if (filteredCourses.isEmpty) {
+                  return Center(
+                    child: Text(
+                      showFavoritesOnly
+                          ? 'Belum ada mata kuliah favorit.'
+                          : 'Mata kuliah tidak ditemukan.',
+                    ),
+                  );
+                }
+
+                return ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                   itemCount: filteredCourses.length,
                   itemBuilder: (context, index) {
@@ -264,9 +261,12 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
 
                     return CourseCard(course: course);
                   },
-                ),
-        ),
-      ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
