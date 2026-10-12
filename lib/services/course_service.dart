@@ -6,16 +6,17 @@ import '../models/course.dart';
 
 class CourseService {
   Future<List<Course>> loadCourses() async {
-    final jsonString = await rootBundle.loadString(
+    final String jsonString = await rootBundle.loadString(
       'assets/data/student_data.json',
     );
 
-    final data = jsonDecode(jsonString) as Map<String, dynamic>;
+    final Map<String, dynamic> jsonData =
+        json.decode(jsonString) as Map<String, dynamic>;
 
-    final list = data['courses'] as List<dynamic>;
+    final List<dynamic> courseList = jsonData['courses'] as List<dynamic>;
 
-    return list
-        .map((item) => Course.fromJson(item as Map<String, dynamic>))
-        .toList();
+    return courseList.map((item) {
+      return Course.fromJson(item as Map<String, dynamic>);
+    }).toList();
   }
 }

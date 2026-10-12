@@ -30,52 +30,52 @@ class CourseDetailPage extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              course.title,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 24),
-            _detailRow('Kode Mata Kuliah', course.code),
-            _detailRow('Jumlah SKS', '${course.credits} SKS'),
-            _detailRow('Status', course.status),
-            const Divider(height: 32),
-            Row(
-              children: [
-                Icon(
-                  favorite ? Icons.favorite : Icons.favorite_border,
-                  color: favorite ? Colors.red : Colors.grey,
-                  size: 28,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    favorite
-                        ? 'Mata kuliah ini sudah menjadi favorit.'
-                        : 'Mata kuliah ini belum menjadi favorit.',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  context.read<CourseProvider>().toggleFavorite(course.code);
-                },
-                icon: Icon(favorite ? Icons.favorite : Icons.favorite_border),
-                label: Text(
-                  favorite ? 'Hapus dari Favorit' : 'Tambahkan ke Favorit',
+        children: [
+          Icon(
+            Icons.menu_book,
+            size: 72,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 20),
+          Text(course.title, style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 24),
+          _detailRow('Kode Mata Kuliah', course.code),
+          _detailRow('Jumlah SKS', '${course.credits} SKS'),
+          _detailRow('Status', course.status),
+          const Divider(height: 32),
+          Row(
+            children: [
+              Icon(
+                favorite ? Icons.favorite : Icons.favorite_border,
+                color: favorite ? Colors.red : Colors.grey,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  favorite
+                      ? 'Mata kuliah ini sudah menjadi favorit.'
+                      : 'Mata kuliah ini belum menjadi favorit.',
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                context.read<CourseProvider>().toggleFavorite(course.code);
+              },
+              icon: Icon(favorite ? Icons.favorite : Icons.favorite_border),
+              label: Text(
+                favorite ? 'Hapus dari Favorit' : 'Tambahkan ke Favorit',
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

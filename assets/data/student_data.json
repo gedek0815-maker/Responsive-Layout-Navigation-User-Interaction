@@ -3,38 +3,32 @@
   "courses": [
     {
       "code": "PTI101",
-      "title": "Algoritma dan Pemrograman",
+      "title": "Pemrograman Dasar",
       "credits": 3,
       "status": "Aktif"
     },
     {
       "code": "PTI102",
-      "title": "Pemrograman Mobile",
+      "title": "Jaringan Komputer",
       "credits": 3,
       "status": "Aktif"
     },
     {
       "code": "PTI103",
-      "title": "Jaringan Komputer",
+      "title": "Pemrograman Mobile",
       "credits": 3,
       "status": "Aktif"
     },
     {
       "code": "PTI104",
       "title": "Basis Data",
-      "credits": 2,
+      "credits": 3,
       "status": "Aktif"
     },
     {
       "code": "PTI105",
-      "title": "Desain Antarmuka",
-      "credits": 2,
-      "status": "Aktif"
-    },
-    {
-      "code": "PTI106",
       "title": "Sistem Operasi",
-      "credits": 3,
+      "credits": 2,
       "status": "Aktif"
     }
   ]
