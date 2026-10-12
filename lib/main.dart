@@ -12,7 +12,7 @@ void main() {
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseProvider(courseRepository),
+      create: (_) => CourseProvider(courseRepository)..loadCourses(),
       child: const MyApp(),
     ),
   );
@@ -24,10 +24,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Course Explorer',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       home: const CourseExplorerPage(),
