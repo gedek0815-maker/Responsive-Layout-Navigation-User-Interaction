@@ -7,7 +7,7 @@ import '../models/course.dart';
 class CourseService {
   Future<List<Course>> loadCourses() async {
     final String jsonString = await rootBundle.loadString(
-      'assets/data/student_data.json',
+      'assets/data/salah_data.json',
     );
 
     final Map<String, dynamic> jsonData =

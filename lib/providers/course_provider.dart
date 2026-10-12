@@ -40,7 +40,7 @@ class CourseProvider extends ChangeNotifier {
       favorites.add(code);
     }
 
-    notifyListeners();
+    // notifyListeners();
   }
 
   List<Course> get favoriteCourses {

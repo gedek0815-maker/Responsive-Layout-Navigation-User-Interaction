@@ -35,6 +35,17 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
     });
   }
 
+  Future<void> testAsyncState() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    setState(() {
+      searchQuery = 'Pemrograman';
+      searchController.text = searchQuery;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isWideScreen = MediaQuery.sizeOf(context).width >= 600;
@@ -46,6 +57,13 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
         title: Text(
           selectedIndex == 0 ? 'Course Explorer' : 'Mata Kuliah Favorit',
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.timer),
+            tooltip: 'Uji Async State',
+            onPressed: testAsyncState,
+          ),
+        ],
       ),
       body: Row(
         children: [
