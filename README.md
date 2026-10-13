@@ -1,17 +1,13 @@
-# flutter_ui_fundamentals
+## Struktur Arsitektur Aplikasi
 
-A new Flutter project.
+Proyek Course Explorer v2 menggunakan pemisahan tanggung jawab agar kode lebih terstruktur dan mudah dikembangkan.
 
-## Getting Started
+- **models**: Menyimpan struktur data mata kuliah dan proses konversi data JSON menjadi objek.
+- **services**: Menangani pengambilan data dari file JSON.
+- **repositories**: Menjadi perantara antara Provider dan Service dalam mengakses data.
+- **providers**: Mengelola state aplikasi, seperti daftar mata kuliah, status loading, error, dan favorit.
+- **screens**: Menyusun halaman utama dan halaman lain yang ditampilkan kepada pengguna.
+- **widgets**: Menyimpan komponen antarmuka yang dapat digunakan kembali.
+- **assets/data**: Menyimpan file JSON sebagai sumber data aplikasi.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Alur dependensi aplikasi dimulai dari Screen atau Widget, dilanjutkan ke Provider, Repository, kemudian Service atau sumber data. Pemisahan ini membantu agar tampilan aplikasi tidak menangani pengambilan data secara langsung.

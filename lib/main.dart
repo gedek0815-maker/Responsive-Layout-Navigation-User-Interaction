@@ -7,21 +7,15 @@ import 'screens/course_explorer_page.dart';
 import 'services/course_service.dart';
 
 void main() {
-  runApp(const TestApp());
-}
+  final courseService = CourseService();
+  final courseRepository = CourseRepository(courseService);
 
-class TestApp extends StatelessWidget {
-  const TestApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // Sengaja mengakses Provider tanpa ChangeNotifierProvider
-    context.watch<CourseProvider>();
-
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Pengujian Provider'))),
-    );
-  }
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CourseProvider(courseRepository)..loadCourses(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -29,12 +23,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sengaja salah untuk pengujian Kasus B
-    context.watch<CourseProvider>();
-
     return MaterialApp(
       title: 'Course Explorer v2',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
       home: const CourseExplorerPage(),
     );
   }
