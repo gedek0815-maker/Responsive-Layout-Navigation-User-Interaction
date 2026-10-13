@@ -10,4 +10,4 @@ Proyek Course Explorer v2 menggunakan pemisahan tanggung jawab agar kode lebih t
 - **widgets**: Menyimpan komponen antarmuka yang dapat digunakan kembali.
 - **assets/data**: Menyimpan file JSON sebagai sumber data aplikasi.
 
-Alur dependensi aplikasi dimulai dari Screen atau Widget, dilanjutkan ke Provider, Repository, kemudian Service atau sumber data. Pemisahan ini membantu agar tampilan aplikasi tidak menangani pengambilan data secara langsung.
+Alur dependensi aplikasi dimulai dari Screen atau Widget, dilanjutkan ke Provider, Repository, kemudian Service atau sumber data. Pemisahan ini membantu agar tampilan aplikasi tidak menangani pengambilan data secara langsung..
