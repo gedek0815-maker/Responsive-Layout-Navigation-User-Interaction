@@ -1,13 +1,17 @@
-## Struktur Arsitektur Aplikasi
+## Dokumentasi REST API (Tahap 1)
 
-Proyek Course Explorer v2 menggunakan pemisahan tanggung jawab agar kode lebih terstruktur dan mudah dikembangkan.
+### Endpoint REST
+- **URL Endpoint:** `https://jsonplaceholder.typicode.com/posts`
+- **HTTP Method:** GET
+- **Status Code:** 200 OK
 
-- **models**: Menyimpan struktur data mata kuliah dan proses konversi data JSON menjadi objek.
-- **services**: Menangani pengambilan data dari file JSON.
-- **repositories**: Menjadi perantara antara Provider dan Service dalam mengakses data.
-- **providers**: Mengelola state aplikasi, seperti daftar mata kuliah, status loading, error, dan favorit.
-- **screens**: Menyusun halaman utama dan halaman lain yang ditampilkan kepada pengguna.
-- **widgets**: Menyimpan komponen antarmuka yang dapat digunakan kembali.
-- **assets/data**: Menyimpan file JSON sebagai sumber data aplikasi.
+### Struktur Data JSON
+Data JSON yang diterima berupa array of objects dengan struktur field sebagai berikut:
 
-Alur dependensi aplikasi dimulai dari Screen atau Widget, dilanjutkan ke Provider, Repository, kemudian Service atau sumber data. Pemisahan ini membantu agar tampilan aplikasi tidak menangani pengambilan data secara langsung..
+```json
+{
+  "userId": 1,
+  "id": 1,
+  "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+  "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita..."
+}
