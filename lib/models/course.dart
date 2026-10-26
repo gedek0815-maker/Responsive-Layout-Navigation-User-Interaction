@@ -19,4 +19,8 @@ class Course {
       status: json['status'] as String,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {'code': code, 'title': title, 'credits': credits, 'status': status};
+  }
 }

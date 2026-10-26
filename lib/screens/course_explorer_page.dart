@@ -43,8 +43,19 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          selectedIndex == 0 ? 'Course Explorer' : 'Mata Kuliah Favorit',
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              selectedIndex == 0 ? 'Course Explorer' : 'Mata Kuliah Favorit',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Text(
+              '$studentName | NIM: $studentId',
+              style: TextStyle(fontSize: 11),
+            ),
+          ],
         ),
       ),
       body: Row(
