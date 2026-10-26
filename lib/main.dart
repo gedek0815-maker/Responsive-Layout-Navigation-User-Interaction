@@ -4,10 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_service.dart';
-import 'api_get_test.dart';
-
-const String studentName = 'Gede Krisna Adi Pramana';
-const String studentId = '2415051036';
+import 'pages/course_explorer_page.dart';
 
 void main() {
   final courseService = CourseService();
@@ -15,7 +12,7 @@ void main() {
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseProvider(courseRepository)..loadCourses(),
+      create: (_) => CourseProvider(courseRepository),
       child: const MyApp(),
     ),
   );
@@ -27,13 +24,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Course Explorer v2',
+      title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const ApiGetTestPage(),
+      home: const CourseExplorerPage(),
     );
   }
 }
