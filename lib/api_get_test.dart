@@ -1,7 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+
+import 'models/api_post.dart';
+import 'services/api_service.dart';
 
 class ApiGetTestPage extends StatefulWidget {
   const ApiGetTestPage({super.key});
@@ -11,44 +11,32 @@ class ApiGetTestPage extends StatefulWidget {
 }
 
 class _ApiGetTestPageState extends State<ApiGetTestPage> {
+  final ApiService apiService = ApiService();
+
   bool isLoading = false;
   String? errorMessage;
-  int? statusCode;
-  List<dynamic> posts = [];
+  List<ApiPost> posts = [];
 
   Future<void> fetchPosts() async {
     setState(() {
       isLoading = true;
       errorMessage = null;
-      statusCode = null;
       posts = [];
     });
 
     try {
-      final response = await http.get(
-        Uri.parse('https://jsonplaceholder.typicode.com/posts'),
-      );
+      final result = await apiService.fetchPosts();
 
       if (!mounted) return;
 
-      statusCode = response.statusCode;
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as List<dynamic>;
-
-        setState(() {
-          posts = data;
-        });
-      } else {
-        setState(() {
-          errorMessage = 'Request gagal. HTTP ${response.statusCode}';
-        });
-      }
+      setState(() {
+        posts = result;
+      });
     } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'Terjadi kesalahan: $e';
+        errorMessage = e.toString();
       });
     } finally {
       if (mounted) {
@@ -69,9 +57,11 @@ class _ApiGetTestPageState extends State<ApiGetTestPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Tahap 2: HTTP GET dan Parsing JSON',
+              'Tahap 4: Pemisahan Service Layer',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
+            const Text('HTTP GET dan parsing JSON dikelola oleh ApiService.'),
             const SizedBox(height: 8),
             const SelectableText('https://jsonplaceholder.typicode.com/posts'),
             const SizedBox(height: 16),
@@ -85,10 +75,17 @@ class _ApiGetTestPageState extends State<ApiGetTestPage> {
             ),
             const SizedBox(height: 16),
             if (isLoading) const Center(child: CircularProgressIndicator()),
-            if (statusCode != null) Text('HTTP Status Code: $statusCode'),
             if (errorMessage != null)
-              Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+              Text(
+                'Terjadi kesalahan: $errorMessage',
+                style: const TextStyle(color: Colors.red),
+              ),
             if (!isLoading && posts.isNotEmpty) ...[
+              const Text(
+                'Status: Data berhasil diterima',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               Text('Jumlah data diterima: ${posts.length}'),
               const SizedBox(height: 8),
               const Text(
@@ -98,9 +95,7 @@ class _ApiGetTestPageState extends State<ApiGetTestPage> {
               const SizedBox(height: 8),
               Expanded(
                 child: SingleChildScrollView(
-                  child: SelectableText(
-                    const JsonEncoder.withIndent('  ').convert(posts.first),
-                  ),
+                  child: SelectableText(posts.first.toJson().toString()),
                 ),
               ),
             ],

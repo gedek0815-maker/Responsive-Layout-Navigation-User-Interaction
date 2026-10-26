@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_service.dart';
-import 'model_test.dart';
+import 'api_get_test.dart';
+
+const String studentName = 'Gede Krisna Adi Pramana';
+const String studentId = '2415051036';
 
 void main() {
   final courseService = CourseService();
@@ -30,7 +33,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const ModelTestPage(),
+      home: const ApiGetTestPage(),
     );
   }
 }
