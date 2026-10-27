@@ -76,6 +76,33 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
+  // Menghapus course menggunakan HTTP DELETE (Tahap 8).
+  Future<bool> deleteCourse(String code, int apiId) async {
+    if (isSaving) return false;
+
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      await repository.deleteCourse(apiId);
+
+      // Poin 49: Hapus course dari daftar lokal untuk me-refresh tampilan.
+      courses.removeWhere((course) => course.code == code);
+
+      // Poin 51: Jika course ada di favorites, hapus juga agar tidak tersisa data yatim.
+      favorites.remove(code);
+
+      return true;
+    } catch (e) {
+      error = e.toString();
+      return false;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
   bool isFavorite(String code) {
     return favorites.contains(code);
   }

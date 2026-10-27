@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../widgets/error_view.dart';
 import 'create_course_page.dart';
@@ -30,6 +31,53 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const CreateCoursePage()),
+    );
+  }
+
+  // Tahap 8: Fungsi hapus course
+  Future<void> _deleteCourse(Course course, int apiId) async {
+    // 47. Tampilkan AlertDialog konfirmasi sebelum menghapus
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Course?'),
+          content: Text(
+            'Apakah kamu yakin ingin menghapus course "${course.title}" (${course.code})?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 48. Jalankan DELETE setelah user menyetujui
+    if (confirm != true || !mounted) return;
+
+    final success = await context
+        .read<CourseProvider>()
+        .deleteCourse(course.code, apiId);
+
+    // 50. Setelah dialog dan await DELETE, periksa context.mounted sebelum menampilkan SnackBar
+    if (!mounted) return;
+
+    // 49. Refresh list dan tampilkan SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Course ${course.code} berhasil dihapus'
+              : 'Gagal menghapus course ${course.code}',
+        ),
+      ),
     );
   }
 
@@ -185,6 +233,16 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
                                 ),
                               );
                             },
+                          ),
+                          // 46. Tambahkan tombol Delete (Tahap 8)
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: 'Hapus course',
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                            onPressed: () => _deleteCourse(course, index + 1),
                           ),
                           // Tombol Favorit
                           IconButton(
