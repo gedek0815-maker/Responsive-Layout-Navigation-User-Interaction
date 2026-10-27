@@ -17,7 +17,14 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
   final _titleController = TextEditingController();
   final _creditsController = TextEditingController();
 
-  String _status = 'planned';
+  static const List<String> _statusOptions = [
+    'Aktif',
+    'Planned',
+    'Active',
+    'Done',
+  ];
+
+  String _status = 'Aktif';
 
   @override
   void dispose() {
@@ -122,16 +129,17 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _status,
+              initialValue: _status,
               decoration: const InputDecoration(
                 labelText: 'Status',
                 border: OutlineInputBorder(),
               ),
-              items: const [
-                DropdownMenuItem(value: 'planned', child: Text('Planned')),
-                DropdownMenuItem(value: 'active', child: Text('Active')),
-                DropdownMenuItem(value: 'done', child: Text('Done')),
-              ],
+              items: _statusOptions.map((status) {
+                return DropdownMenuItem<String>(
+                  value: status,
+                  child: Text(status),
+                );
+              }).toList(),
               onChanged: isSaving
                   ? null
                   : (value) {

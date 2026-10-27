@@ -49,6 +49,33 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
+  // Memperbarui course yang sudah ada (HTTP PUT - Tahap 7).
+  Future<bool> updateCourse(int id, Course course) async {
+    if (isSaving) return false;
+
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      await repository.updateCourse(id, course);
+
+      // Perbarui data course di list lokal agar perubahan langsung tampil di UI (Poin 45).
+      final index = courses.indexWhere((c) => c.code == course.code);
+      if (index != -1) {
+        courses[index] = course;
+      }
+
+      return true;
+    } catch (e) {
+      error = e.toString();
+      return false;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
   bool isFavorite(String code) {
     return favorites.contains(code);
   }

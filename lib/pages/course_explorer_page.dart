@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/course_provider.dart';
 import '../widgets/error_view.dart';
 import 'create_course_page.dart';
+import 'edit_course_page.dart';
 
 class CourseExplorerPage extends StatefulWidget {
   const CourseExplorerPage({super.key});
@@ -143,6 +144,17 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditCoursePage(
+                              course: course,
+                              apiId: index + 1,
+                            ),
+                          ),
+                        );
+                      },
                       leading: CircleAvatar(child: Text('${index + 1}')),
                       title: Text(course.code),
                       subtitle: Text(
@@ -151,17 +163,44 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
                         'Status: ${course.status}',
                       ),
                       isThreeLine: true,
-                      trailing: IconButton(
-                        tooltip: favorite
-                            ? 'Hapus dari favorit'
-                            : 'Tambah ke favorit',
-                        icon: Icon(
-                          favorite ? Icons.favorite : Icons.favorite_border,
-                          color: favorite ? Colors.red : null,
-                        ),
-                        onPressed: () {
-                          provider.toggleFavorite(course.code);
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 41. Tambahkan tombol Edit pada ListTile (Tahap 7)
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: 'Edit course',
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: Colors.blue,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditCoursePage(
+                                    course: course,
+                                    apiId: index + 1,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // Tombol Favorit
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            tooltip: favorite
+                                ? 'Hapus dari favorit'
+                                : 'Tambah ke favorit',
+                            icon: Icon(
+                              favorite ? Icons.favorite : Icons.favorite_border,
+                              color: favorite ? Colors.red : null,
+                            ),
+                            onPressed: () {
+                              provider.toggleFavorite(course.code);
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );
