@@ -1,24 +1,20 @@
 import '../models/course.dart';
-import '../services/course_service.dart';
+import '../services/course_data_source.dart';
 
+// Repository Pattern: Menggunakan CourseDataSource sebagai abstraksi (Tahap 9 - Poin 53)
 class CourseRepository {
-  final CourseService service;
+  CourseRepository(this.dataSource);
 
-  CourseRepository(this.service);
+  final CourseDataSource dataSource;
 
-  Future<List<Course>> getCourses() {
-    return service.loadCourses();
-  }
+  Future<List<Course>> getCourses() => dataSource.getCourses();
 
-  Future<Course> createCourse(Course course) {
-    return service.createCourse(course);
-  }
+  Future<Course> createCourse(Course course) =>
+      dataSource.createCourse(course);
 
-  Future<void> updateCourse(int id, Course course) {
-    return service.updateCourse(id, course);
-  }
+  Future<void> updateCourse(int id, Course course) =>
+      dataSource.updateCourse(id, course);
 
-  Future<void> deleteCourse(int id) {
-    return service.deleteCourse(id);
-  }
+  Future<void> deleteCourse(int id) =>
+      dataSource.deleteCourse(id);
 }
