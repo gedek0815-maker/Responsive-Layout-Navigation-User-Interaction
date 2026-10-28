@@ -1,5 +1,5 @@
 // Nama: Gede Krisna Adi Pramana | NIM: 2415051036
-// Tahap 13: INSERT - Menambah Data ke Database Supabase (Poin 78)
+// Tahap 15: DELETE - Menghapus Data dari Database Supabase (Poin 87)
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -44,6 +44,12 @@ class CourseSupabaseService implements CourseDataSource {
         .eq('id', id);
   }
 
+  // Tahap 15: DELETE - Menghapus Data dari Database (Poin 87)
   @override
-  Future<void> deleteCourse(int id) => throw UnimplementedError();
+  Future<void> deleteCourse(int id) async {
+    await supabase
+        .from('courses')
+        .delete()
+        .eq('id', id);
+  }
 }

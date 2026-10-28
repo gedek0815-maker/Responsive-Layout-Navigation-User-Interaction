@@ -49,7 +49,7 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Memperbarui course yang sudah ada (HTTP PUT - Tahap 7).
+  // Memperbarui course yang sudah ada (HTTP PUT - Tahap 7 & Tahap 14).
   Future<bool> updateCourse(int id, Course course) async {
     if (isSaving) return false;
 
@@ -72,7 +72,7 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Menghapus course menggunakan HTTP DELETE (Tahap 8).
+  // Menghapus course menggunakan HTTP DELETE (Tahap 8 & Tahap 15).
   Future<bool> deleteCourse(String code, int apiId) async {
     if (isSaving) return false;
 
@@ -83,8 +83,8 @@ class CourseProvider extends ChangeNotifier {
     try {
       await repository.deleteCourse(apiId);
 
-      // Poin 49: Hapus course dari daftar lokal untuk me-refresh tampilan.
-      courses.removeWhere((course) => course.code == code);
+      // Tahap 15 - Poin 88: Refresh list dari database setelah berhasil delete
+      await loadCourses();
 
       // Poin 51: Jika course ada di favorites, hapus juga agar tidak tersisa data yatim.
       favorites.remove(code);
