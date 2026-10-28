@@ -20,11 +20,11 @@ class _EditCoursePageState extends State<EditCoursePage> {
   late final TextEditingController _titleController;
   late final TextEditingController _creditsController;
 
+  // Tahap 14 - Poin 82: Ubah title/credits/status (pilihan planned / active / done)
   static const List<String> _statusOptions = [
-    'Aktif',
-    'Planned',
-    'Active',
-    'Done',
+    'planned',
+    'active',
+    'done',
   ];
 
   late String _status;
@@ -47,11 +47,8 @@ class _EditCoursePageState extends State<EditCoursePage> {
       text: '${widget.course.credits}',
     );
 
-    final currentStatus = widget.course.status;
-    _status = _statusOptions.firstWhere(
-      (s) => s.toLowerCase() == currentStatus.toLowerCase(),
-      orElse: () => currentStatus,
-    );
+    final currentStatus = widget.course.status.toLowerCase();
+    _status = _statusOptions.contains(currentStatus) ? currentStatus : 'planned';
   }
 
   @override
@@ -66,26 +63,29 @@ class _EditCoursePageState extends State<EditCoursePage> {
     if (!_formKey.currentState!.validate()) return;
 
     final updatedCourse = Course(
+      id: widget.apiId,
       code: widget.course.code,
       title: _titleController.text.trim(),
       credits: int.parse(_creditsController.text.trim()),
       status: _status,
     );
 
-    // 43 & 44. Kirim perubahan menggunakan PUT/PATCH via CourseProvider
+    // Tahap 14 - Poin 83: UPDATE berdasarkan id
     final success = await context.read<CourseProvider>().updateCourse(
       widget.apiId,
       updatedCourse,
     );
 
-    // 44. Pemeriksaan context.mounted sebelum menampilkan SnackBar
+    // Pemeriksaan context.mounted sebelum menampilkan SnackBar
     if (!mounted) return;
 
-    // 45. Tampilkan hasil
+    // Tampilkan hasil
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          success ? 'Request update berhasil.' : 'Gagal memperbarui course.',
+          success
+              ? 'Course ${widget.course.code} berhasil diperbarui di database!'
+              : 'Gagal memperbarui course: ${context.read<CourseProvider>().error ?? "Periksa koneksi"}',
         ),
       ),
     );
@@ -97,11 +97,26 @@ class _EditCoursePageState extends State<EditCoursePage> {
 
   @override
   Widget build(BuildContext context) {
-    // 44. Terapkan guard submit ganda
+    // Terapkan guard submit ganda
     final isSaving = context.watch<CourseProvider>().isSaving;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Course')),
+      appBar: AppBar(
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Edit Course',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Gede Krisna Adi Pramana | NIM: 2415051036',
+              style: TextStyle(fontSize: 11),
+            ),
+          ],
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(

@@ -3,6 +3,7 @@
 // PERINGATAN: Jangan pernah menggunakan service_role key di aplikasi mobile!
 
 class SupabaseConfig {
-  static const String url = 'YOUR_SUPABASE_URL';
-  static const String anonKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String url = 'https://kffkooavwdswvjkbgisr.supabase.co';
+  static const String anonKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmZmtvb2F2d2Rzd3Zqa2JnaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMjkwMzcsImV4cCI6MjEwODcwNTAzN30.aEnYSOWBtUhn7s0W2Y_OeGHfkztrZWiTqHLHTlbU0kk';
 }

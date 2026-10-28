@@ -216,7 +216,7 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
                           MaterialPageRoute(
                             builder: (_) => EditCoursePage(
                               course: course,
-                              apiId: index + 1,
+                              apiId: course.id ?? (index + 1),
                             ),
                           ),
                         );
@@ -232,7 +232,7 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 41. Tambahkan tombol Edit pada ListTile (Tahap 7)
+                          // 41. Tambahkan tombol Edit pada ListTile (Tahap 7 & Tahap 14)
                           IconButton(
                             visualDensity: VisualDensity.compact,
                             tooltip: 'Edit course',
@@ -246,7 +246,7 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
                                 MaterialPageRoute(
                                   builder: (_) => EditCoursePage(
                                     course: course,
-                                    apiId: index + 1,
+                                    apiId: course.id ?? (index + 1),
                                   ),
                                 ),
                               );
@@ -260,7 +260,10 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
                               Icons.delete_outline,
                               color: Colors.red,
                             ),
-                            onPressed: () => _deleteCourse(course, index + 1),
+                            onPressed: () => _deleteCourse(
+                              course,
+                              course.id ?? (index + 1),
+                            ),
                           ),
                           // Tombol Favorit
                           IconButton(

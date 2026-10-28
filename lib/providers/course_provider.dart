@@ -59,12 +59,8 @@ class CourseProvider extends ChangeNotifier {
 
     try {
       await repository.updateCourse(id, course);
-
-      // Perbarui data course di list lokal agar perubahan langsung tampil di UI (Poin 45).
-      final index = courses.indexWhere((c) => c.code == course.code);
-      if (index != -1) {
-        courses[index] = course;
-      }
+      // Tahap 14 - Poin 84: Refresh list dari database setelah berhasil update
+      await loadCourses();
 
       return true;
     } catch (e) {
