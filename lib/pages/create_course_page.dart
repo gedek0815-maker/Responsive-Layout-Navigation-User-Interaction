@@ -17,14 +17,14 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
   final _titleController = TextEditingController();
   final _creditsController = TextEditingController();
 
+  // Tahap 13 - Poin 77: Validasi status dengan pilihan planned / active / done
   static const List<String> _statusOptions = [
-    'Aktif',
-    'Planned',
-    'Active',
-    'Done',
+    'planned',
+    'active',
+    'done',
   ];
 
-  String _status = 'Aktif';
+  String _status = 'planned';
 
   @override
   void dispose() {
@@ -49,12 +49,13 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
 
     if (!mounted) return;
 
+    // Tahap 13 - Poin 79: Tampilkan notifikasi setelah berhasil
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           success
-              ? 'POST berhasil. Daftar dimuat ulang dari sumber GET.'
-              : 'Gagal mengirim course. Periksa koneksi dan error.',
+              ? 'Course ${course.code} berhasil ditambahkan ke database!'
+              : 'Gagal menambah course: ${provider.error ?? "Periksa koneksi"}',
         ),
       ),
     );
@@ -69,7 +70,22 @@ class _CreateCoursePageState extends State<CreateCoursePage> {
     final isSaving = context.watch<CourseProvider>().isSaving;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Course')),
+      appBar: AppBar(
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Tambah Course',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Gede Krisna Adi Pramana | NIM: 2415051036',
+              style: TextStyle(fontSize: 11),
+            ),
+          ],
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
