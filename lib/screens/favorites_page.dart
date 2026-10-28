@@ -24,12 +24,13 @@ class FavoritesPage extends StatelessWidget {
               Text(
                 'Belum ada mata kuliah favorit.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
               Text(
-                'Tambahkan mata kuliah melalui halaman Course Explorer.',
+                'Tambahkan mata kuliah dari daftar Courses dengan menekan ikon hati.',
                 textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
               ),
             ],
           ),

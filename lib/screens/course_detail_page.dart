@@ -16,7 +16,20 @@ class CourseDetailPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Mata Kuliah'),
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Detail Mata Kuliah',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Gede Krisna Adi Pramana | NIM: 2415051036',
+              style: TextStyle(fontSize: 11),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: favorite ? 'Hapus favorit' : 'Tambah favorit',
@@ -39,7 +52,11 @@ class CourseDetailPage extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 20),
-          Text(course.title, style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            course.title,
+            style: Theme.of(context).textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 24),
           _detailRow('Kode Mata Kuliah', course.code),
           _detailRow('Jumlah SKS', '${course.credits} SKS'),
