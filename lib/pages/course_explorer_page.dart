@@ -81,6 +81,24 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
     );
   }
 
+  // Tahap 12 - Poin 75: Pastikan Nama dan NIM tetap tampil
+  Widget _buildAppBarTitle() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Course Explorer',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          'Gede Krisna Adi Pramana | NIM: 2415051036',
+          style: TextStyle(fontSize: 11),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CourseProvider>();
@@ -88,7 +106,7 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
     // Loading State
     if (provider.isLoading && provider.courses.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Course Explorer')),
+        appBar: AppBar(title: _buildAppBarTitle()),
         body: const Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -105,7 +123,7 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
     // Error State ketika belum ada data.
     if (provider.error != null && provider.courses.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Course Explorer')),
+        appBar: AppBar(title: _buildAppBarTitle()),
         body: ErrorView(
           message: provider.error!,
           onRetry: provider.loadCourses,
@@ -122,7 +140,7 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
     if (provider.courses.isEmpty && !provider.isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Course Explorer'),
+          title: _buildAppBarTitle(),
           actions: [
             IconButton(
               tooltip: 'Muat ulang',
@@ -152,7 +170,7 @@ class _CourseExplorerPageState extends State<CourseExplorerPage> {
     // Success State
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer'),
+        title: _buildAppBarTitle(),
         actions: [
           IconButton(
             tooltip: 'Muat ulang data',

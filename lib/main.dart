@@ -6,14 +6,19 @@ import 'constants/supabase_config.dart';
 import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_api_service.dart';
+import 'services/course_data_source.dart';
+import 'services/course_supabase_service.dart';
 import 'pages/course_explorer_page.dart';
 
 Future<void> main() async {
   // Poin 61: Inisialisasikan Supabase sebelum runApp()
   WidgetsFlutterBinding.ensureInitialized();
 
+  final bool isSupabaseConfigured =
+      SupabaseConfig.url != 'YOUR_SUPABASE_URL' && SupabaseConfig.url.isNotEmpty;
+
   // Inisialisasi Supabase Client (Tahap 10)
-  if (SupabaseConfig.url != 'YOUR_SUPABASE_URL' && SupabaseConfig.url.isNotEmpty) {
+  if (isSupabaseConfigured) {
     await Supabase.initialize(
       url: SupabaseConfig.url,
       // ignore: deprecated_member_use
@@ -21,9 +26,12 @@ Future<void> main() async {
     );
   }
 
-  // Poin 62: Perakitan service -> repository -> provider tetap dilakukan di main() setelah Supabase.initialize
-  const apiBaseUrl = 'https://jsonplaceholder.typicode.com';
-  final repository = CourseRepository(CourseApiService(apiBaseUrl));
+  // Poin 62 & Tahap 12: Perakitan service -> repository -> provider setelah Supabase.initialize
+  final CourseDataSource dataSource = isSupabaseConfigured
+      ? CourseSupabaseService()
+      : CourseApiService('https://jsonplaceholder.typicode.com');
+
+  final repository = CourseRepository(dataSource);
 
   runApp(
     ChangeNotifierProvider(
