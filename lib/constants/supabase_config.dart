@@ -1,6 +1,9 @@
-// Konfigurasi Supabase (Tahap 10 - Poin 59 & Praktik yang disarankan)
-// Masukkan Project URL dan anon/publishable key dari project Supabase Anda.
-// PERINGATAN: Jangan pernah menggunakan service_role key di aplikasi mobile!
+// Konfigurasi Supabase (Tahap 10 & Tahap 17: Security Check)
+// KEAMANAN (Security Checklist):
+// 1. Hanya gunakan publishable/anon key pada aplikasi mobile client.
+// 2. Jangan pernah menyimpan service_role key di repository atau source code client.
+// 3. Hak akses (SELECT/INSERT/UPDATE/DELETE) sepenuhnya dikendalikan oleh Row Level Security (RLS) di PostgreSQL.
+// 4. Validasi antarmuka (UI) bukan pengganti validasi dan otorisasi backend.
 
 class SupabaseConfig {
   static const String url = 'https://kffkooavwdswvjkbgisr.supabase.co';
