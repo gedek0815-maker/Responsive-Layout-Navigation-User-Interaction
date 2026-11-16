@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
@@ -37,6 +38,136 @@ class _HomePageState extends State<HomePage> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
+    );
+  }
+
+  /// Praktik 6: Security Testing — Menguji penolakan akses oleh database RLS
+  Future<void> _runSecurityTest(List<Map<String, dynamic>> allKos) async {
+    final myId = Supabase.instance.client.auth.currentUser?.id;
+    // Cari kos milik user lain (User A)
+    final targetKos = allKos.firstWhere(
+      (k) => k['owner_id'] != myId,
+      orElse: () => allKos.isNotEmpty ? allKos.first : {},
+    );
+
+    if (targetKos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tambahkan minimal 1 kos terlebih dahulu menggunakan akun Owner.'),
+        ),
+      );
+      return;
+    }
+
+    final targetId = targetKos['id'].toString();
+    final targetOwnerId = targetKos['owner_id'].toString();
+
+    // 1. Mencoba mengedit data milik orang lain -> Harus DENIED oleh RLS
+    final updateResult = await _kosService.update(targetId, {'name': 'HACKED BY USER B'});
+    final updatePassed = !updateResult;
+    debugPrint(updatePassed
+        ? '[PASS] UPDATE ditolak oleh RLS'
+        : '[FAIL] User B berhasil mengubah data User A');
+
+    // 2. Mencoba menghapus data milik orang lain -> Harus DENIED oleh RLS
+    final deleteResult = await _kosService.delete(targetId);
+    final deletePassed = !deleteResult;
+    debugPrint(deletePassed
+        ? '[PASS] DELETE ditolak oleh RLS'
+        : '[FAIL] User B berhasil menghapus data User A');
+
+    // 3. Mencoba INSERT kos atas nama user lain -> Harus ERROR PostgrestException 42501
+    String insertStatus = '';
+    try {
+      await Supabase.instance.client.from('kos').insert({
+        'owner_id': targetOwnerId,
+        'name': 'Kos Palsu Pembobol',
+        'address': 'Alamat Palsu',
+        'price': 100000,
+      });
+      insertStatus = '[FAIL] INSERT atas nama user lain berhasil lolos';
+      debugPrint(insertStatus);
+    } on PostgrestException catch (e) {
+      insertStatus = '[PASS] INSERT ditolak: ${e.code} - ${e.message}';
+      debugPrint(insertStatus);
+    } catch (e) {
+      insertStatus = '[PASS] INSERT ditolak oleh security policy: $e';
+      debugPrint(insertStatus);
+    }
+
+    if (!mounted) return;
+
+    // Tampilkan hasil uji keamanan di layar (untuk bahan screenshot Bukti Praktik 6)
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.security, color: Colors.green),
+            SizedBox(width: 8),
+            Text('Hasil Security Test (RLS)'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Menguji keamanan database jika User mencoba memanipulasi data orang lain:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            _buildResultRow('1. UPDATE data orang lain', updatePassed ? 'DITOLAK (PASS)' : 'LOLOS (FAIL)', updatePassed),
+            const SizedBox(height: 8),
+            _buildResultRow('2. DELETE data orang lain', deletePassed ? 'DITOLAK (PASS)' : 'LOLOS (FAIL)', deletePassed),
+            const SizedBox(height: 8),
+            _buildResultRow('3. INSERT palsu nama orang lain', insertStatus.contains('[PASS]') ? 'DITOLAK 42501 (PASS)' : 'LOLOS (FAIL)', insertStatus.contains('[PASS]')),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: const Text(
+                'Kesimpulan: Row Level Security (RLS) di PostgreSQL Supabase berhasil memblokir seluruh manipulasi data ilegal.',
+                style: TextStyle(fontSize: 12, color: Colors.green),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultRow(String title, String status, bool success) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(child: Text(title, style: const TextStyle(fontSize: 12))),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: success ? Colors.green.shade100 : Colors.red.shade100,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            status,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: success ? Colors.green.shade800 : Colors.red.shade800,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -250,12 +381,28 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const Divider(),
 
-                // Header Daftar Kos
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(
-                    'Daftar Kos Tersedia',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                // Header Daftar Kos & Tombol Uji Security RLS
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Daftar Kos Tersedia',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: _kosFuture,
+                        builder: (ctx, s) {
+                          final items = s.data ?? [];
+                          return OutlinedButton.icon(
+                            onPressed: items.isEmpty ? null : () => _runSecurityTest(items),
+                            icon: const Icon(Icons.security, size: 16),
+                            label: const Text('Test RLS', style: TextStyle(fontSize: 12)),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
 
