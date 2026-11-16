@@ -4,3 +4,4 @@ import 'package:flutter/material.dart';
 /// (dipakai juga pada Praktik 10 dan Bonus).
 final navigatorKey = GlobalKey<NavigatorState>();
 final messengerKey = GlobalKey<ScaffoldMessengerState>();
+
