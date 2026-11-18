@@ -1,13 +1,29 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_keys.dart';
 import 'constants/supabase_config.dart';
+import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'services/auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inisialisasi Firebase (Praktik 7: Konfigurasi FCM)
+  try {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
+
+  // Inisialisasi Supabase
   await Supabase.initialize(
     url: SupabaseConfig.url,
     // ignore: deprecated_member_use

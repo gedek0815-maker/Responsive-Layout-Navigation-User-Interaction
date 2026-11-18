@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "165625087160",
+    "project_id": "kosfinder-krisna",
+    "storage_bucket": "kosfinder-krisna.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165625087160:android:02ea37b0be8faae240a04d",
+        "android_client_info": {
+          "package_name": "com.example.flutter_ui_fundamentals"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_7tKHVqZmOwBo9u-Cv7okUk9KKRQ6edM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

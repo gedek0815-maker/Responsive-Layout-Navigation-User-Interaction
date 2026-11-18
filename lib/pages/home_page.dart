@@ -105,7 +105,12 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(Icons.security, color: Colors.green),
             SizedBox(width: 8),
-            Text('Hasil Security Test (RLS)'),
+            Expanded(
+              child: Text(
+                'Security Test (RLS)',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
           ],
         ),
         content: Column(
