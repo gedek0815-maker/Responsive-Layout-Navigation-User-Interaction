@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,16 +9,18 @@ import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Firebase (Praktik 7: Konfigurasi FCM)
+  // Inisialisasi Firebase & Background Handler (Praktik 7, 8, 10)
   try {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     }
   } catch (e) {
     debugPrint('Firebase init error: $e');
@@ -30,7 +33,7 @@ Future<void> main() async {
     anonKey: SupabaseConfig.anonKey,
   );
 
-  // Mendengarkan perubahan session (misal user logout atau token expired)
+  // Mendengarkan perubahan session
   Supabase.instance.client.auth.onAuthStateChange.listen((data) {
     debugPrint('Auth event: ${data.event}');
     if (data.event == AuthChangeEvent.signedOut) {
@@ -58,10 +61,9 @@ class KosFinderApp extends StatelessWidget {
       ),
       navigatorKey: navigatorKey,
       scaffoldMessengerKey: messengerKey,
-      // Check Session -> Login / Home
       home: AuthService.instance.isLoggedIn
-          ? const HomePage() // Session Exists -> Home
-          : const LoginPage(), // No Session   -> Login
+          ? const HomePage()
+          : const LoginPage(),
     );
   }
 }

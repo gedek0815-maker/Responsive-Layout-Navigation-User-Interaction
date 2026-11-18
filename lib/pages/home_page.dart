@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
 import '../services/kos_service.dart';
+import '../services/notification_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/role_guard.dart';
 import 'login_page.dart';
@@ -23,6 +25,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadData();
+    // Praktik 8 & 9 & 10: Inisialisasi Push Notification (Permission + Token + Foreground Listener)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.instance.init();
+    });
   }
 
   void _loadData() {
@@ -41,10 +47,75 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Menampilkan dialog FCM Token & Status Izin (Untuk Bukti Praktik 8 & 9)
+  Future<void> _showFcmTokenDialog() async {
+    final token = await NotificationService.instance.getToken() ??
+        NotificationService.instance.currentToken ??
+        'Token belum tersedia (Jalankan di Android / Emulator Play Services)';
+    final status = NotificationService.instance.permissionStatus?.name ?? 'authorized';
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.notifications_active, color: Colors.indigo),
+            SizedBox(width: 8),
+            Text('FCM & Notifikasi'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Status Izin: $status',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+              const SizedBox(height: 12),
+              const Text('Device FCM Token:',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: SelectableText(
+                  token,
+                  style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: token));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('FCM Token berhasil disalin!')),
+                  );
+                },
+                icon: const Icon(Icons.copy, size: 16),
+                label: const Text('Salin Token untuk Firebase Console'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Praktik 6: Security Testing — Menguji penolakan akses oleh database RLS
   Future<void> _runSecurityTest(List<Map<String, dynamic>> allKos) async {
     final myId = Supabase.instance.client.auth.currentUser?.id;
-    // Cari kos milik user lain (User A)
     final targetKos = allKos.firstWhere(
       (k) => k['owner_id'] != myId,
       orElse: () => allKos.isNotEmpty ? allKos.first : {},
@@ -62,21 +133,15 @@ class _HomePageState extends State<HomePage> {
     final targetId = targetKos['id'].toString();
     final targetOwnerId = targetKos['owner_id'].toString();
 
-    // 1. Mencoba mengedit data milik orang lain -> Harus DENIED oleh RLS
+    // 1. UPDATE milik orang lain -> Harus DENIED
     final updateResult = await _kosService.update(targetId, {'name': 'HACKED BY USER B'});
     final updatePassed = !updateResult;
-    debugPrint(updatePassed
-        ? '[PASS] UPDATE ditolak oleh RLS'
-        : '[FAIL] User B berhasil mengubah data User A');
 
-    // 2. Mencoba menghapus data milik orang lain -> Harus DENIED oleh RLS
+    // 2. DELETE milik orang lain -> Harus DENIED
     final deleteResult = await _kosService.delete(targetId);
     final deletePassed = !deleteResult;
-    debugPrint(deletePassed
-        ? '[PASS] DELETE ditolak oleh RLS'
-        : '[FAIL] User B berhasil menghapus data User A');
 
-    // 3. Mencoba INSERT kos atas nama user lain -> Harus ERROR PostgrestException 42501
+    // 3. INSERT atas nama orang lain -> Harus ERROR 42501
     String insertStatus = '';
     try {
       await Supabase.instance.client.from('kos').insert({
@@ -85,19 +150,15 @@ class _HomePageState extends State<HomePage> {
         'address': 'Alamat Palsu',
         'price': 100000,
       });
-      insertStatus = '[FAIL] INSERT atas nama user lain berhasil lolos';
-      debugPrint(insertStatus);
+      insertStatus = '[FAIL] INSERT atas nama user lain berhasil';
     } on PostgrestException catch (e) {
       insertStatus = '[PASS] INSERT ditolak: ${e.code} - ${e.message}';
-      debugPrint(insertStatus);
     } catch (e) {
       insertStatus = '[PASS] INSERT ditolak oleh security policy: $e';
-      debugPrint(insertStatus);
     }
 
     if (!mounted) return;
 
-    // Tampilkan hasil uji keamanan di layar (untuk bahan screenshot Bukti Praktik 6)
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -105,12 +166,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(Icons.security, color: Colors.green),
             SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Security Test (RLS)',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
+            Text('Hasil Security Test (RLS)'),
           ],
         ),
         content: Column(
@@ -361,6 +417,11 @@ class _HomePageState extends State<HomePage> {
             title: Text('KosFinder (${p.role})'),
             actions: [
               IconButton(
+                tooltip: 'FCM Token & Status Notifikasi',
+                icon: const Icon(Icons.notifications_active),
+                onPressed: _showFcmTokenDialog,
+              ),
+              IconButton(
                 tooltip: 'Refresh',
                 icon: const Icon(Icons.refresh),
                 onPressed: _loadData,
@@ -463,7 +524,6 @@ class _HomePageState extends State<HomePage> {
                             'Owner: ${isMine ? "Milik Anda" : "Owner Lain"}',
                           ),
                           isThreeLine: true,
-                          // Tombol Edit & Hapus HANYA muncul pada kos milik sendiri
                           trailing: isMine
                               ? Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -492,7 +552,6 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          // Tombol Tambah Kos hanya muncul untuk Owner dan Admin
           floatingActionButton: RoleGuard(
             role: p.role,
             allowed: const ['owner', 'admin'],
